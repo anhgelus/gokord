@@ -28,24 +28,24 @@ const (
 
 // BaseConfig is all basic configuration (debug, redis connection and database connection)
 type BaseConfig struct {
-	Debug    bool
-	Author   string
-	Redis    RedisCredentials
-	Database DatabaseCredentials
+	Debug    bool                `toml:"debug"`
+	Author   string              `toml:"author"`
+	Redis    RedisCredentials    `toml:"redis"`
+	Database DatabaseCredentials `toml:"database"`
 }
 
 type RedisCredentials struct {
-	Address  string
-	Password string
-	DB       int
+	Address  string `toml:"address"`
+	Password string `toml:"password"`
+	DB       int    `toml:"db"`
 }
 
 type DatabaseCredentials struct {
-	Host     string
-	User     string
-	Password string
-	DBName   string
-	Port     int
+	Host     string `toml:"host"`
+	User     string `toml:"user"`
+	Password string `toml:"password"`
+	DBName   string `toml:"db_name"`
+	Port     int    `toml:"port"`
 }
 
 // ConfigInfo has all required information to get a config

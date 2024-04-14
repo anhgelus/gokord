@@ -1,14 +1,14 @@
-Debug = false
-Author = "anhgelus"
+debug = false
+author = "anhgelus"
 
-[Redis]
-Address = "localhost:6379"
-Password = ""
-DB = 0
+[redis]
+address = "localhost:6379"
+password = ""
+db = 0
 
-[Database]
-Host = "localhost"
-User = ""
-Password = ""
-DBName = ""
-Port = 5432
+[database]
+host = "localhost"
+user = ""
+password = ""
+db_name = ""
+port = 5432
