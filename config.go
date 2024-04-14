@@ -73,7 +73,7 @@ func Get(cfg any, defaultConfig string, name string) error {
 }
 
 // SetupConfigs with the given configs (+ base config which is available at BaseCfg)
-func SetupConfigs(cfgInfo []ConfigInfo) error {
+func SetupConfigs(cfgInfo []*ConfigInfo) error {
 	err := getBaseConfig(&BaseCfg, DefaultBaseConfig)
 	if err != nil {
 		return err
