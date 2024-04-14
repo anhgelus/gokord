@@ -20,6 +20,10 @@ var (
 	ErrImpossibleToConnectRedis = errors.New("impossible to connect to redis")
 )
 
+const (
+	ConfigFolder = "config"
+)
+
 // BaseConfig is all basic configuration (debug, redis connection and database connection)
 type BaseConfig struct {
 	Debug    bool
@@ -56,7 +60,11 @@ func getBaseConfig(cfg any, defaultConfig string) error {
 
 // Get a config (already called on start)
 func Get(cfg any, defaultConfig string, name string) error {
-	path := fmt.Sprintf("/config/%s.toml", name)
+	path := fmt.Sprintf("%s/%s.toml", ConfigFolder, name)
+	err := os.Mkdir(ConfigFolder, 0666)
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
 	c, err := os.ReadFile(path)
 	if err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
