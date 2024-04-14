@@ -19,7 +19,7 @@ const (
 	AnsiYellowBold  = "\033[33;1m"
 )
 
-var DebugEnabled bool
+var DebugEnabled = true
 
 // SendSuccess sends a success message
 func SendSuccess(message string) {
