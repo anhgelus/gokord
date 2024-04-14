@@ -22,13 +22,10 @@ var (
 
 // BaseConfig is all basic configuration (debug, redis connection and database connection)
 type BaseConfig struct {
-	Main     Main
+	Debug    bool
+	Author   string
 	Redis    RedisCredentials
 	Database DatabaseCredentials
-}
-
-type Main struct {
-	Debug bool
 }
 
 type RedisCredentials struct {
@@ -43,6 +40,13 @@ type DatabaseCredentials struct {
 	Password string
 	DBName   string
 	Port     int
+}
+
+// ConfigInfo has all required information to get a config
+type ConfigInfo struct {
+	Cfg     any    // pointer to the struct
+	Name    string // name of the config
+	Default string // default content of the config
 }
 
 // getBaseConfig get the BaseConfig
@@ -68,13 +72,6 @@ func Get(cfg any, defaultConfig string, name string) error {
 	return toml.Unmarshal(c, &cfg)
 }
 
-// ConfigInfo has all required information to get a config
-type ConfigInfo struct {
-	Cfg     any    // pointer to the struct
-	Name    string // name of the config
-	Default string // default content of the config
-}
-
 // SetupConfigs with the given configs (+ base config which is available at BaseCfg)
 func SetupConfigs(cfgInfo []ConfigInfo) error {
 	err := getBaseConfig(&BaseCfg, DefaultBaseConfig)
@@ -82,7 +79,8 @@ func SetupConfigs(cfgInfo []ConfigInfo) error {
 		return err
 	}
 
-	Debug = BaseCfg.Main.Debug
+	Debug = BaseCfg.Debug
+	utils.Author = BaseCfg.Author
 
 	for _, cfg := range cfgInfo {
 		err = Get(cfg.Cfg, cfg.Name, cfg.Default)

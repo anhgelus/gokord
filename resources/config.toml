@@ -1,5 +1,5 @@
-[Main]
 Debug = false
+Author = "anhgelus"
 
 [Redis]
 Address = "localhost:6379"

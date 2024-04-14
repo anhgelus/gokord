@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+var Author string
+
 // ResponseBuilder helps to response to slash commands
 type ResponseBuilder struct {
 	content       string
@@ -89,7 +91,7 @@ func (res *ResponseBuilder) Message(s string) *ResponseBuilder {
 func (res *ResponseBuilder) Embeds(e []*discordgo.MessageEmbed) *ResponseBuilder {
 	t := time.Now()
 	footer := &discordgo.MessageEmbedFooter{
-		Text:    "by anhgelus",
+		Text:    "by " + Author,
 		IconURL: res.C.State.User.AvatarURL(""),
 	}
 	author := &discordgo.MessageEmbedAuthor{
