@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"github.com/anhgelus/gokord/utils"
 	"github.com/pelletier/go-toml/v2"
-	"log/slog"
 	"os"
-	"strconv"
 )
 
 var (
@@ -88,18 +86,6 @@ func SetupConfigs(cfgInfo []*ConfigInfo) error {
 	if err != nil {
 		return err
 	}
-
-	slog.Info(
-		"Base config parsed",
-		"debug",
-		strconv.FormatBool(BaseCfg.Debug),
-		"author",
-		BaseCfg.Author,
-		"database",
-		BaseCfg.Database.generateDsn(),
-		"redis",
-		BaseCfg.Redis.Address,
-	)
 
 	Debug = BaseCfg.Debug
 	utils.Author = BaseCfg.Author
