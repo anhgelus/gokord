@@ -79,7 +79,7 @@ func Get(cfg any, defaultConfig string, name string) error {
 			return err
 		}
 	}
-	return toml.Unmarshal(c, &cfg)
+	return toml.Unmarshal(c, cfg)
 }
 
 // SetupConfigs with the given configs (+ base config which is available at BaseCfg)
