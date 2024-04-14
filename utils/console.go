@@ -42,8 +42,3 @@ func SendDebug(message string, args ...string) {
 func SendAlert(pos string, message string) {
 	slog.Error(AnsiRed+message+AnsiReset, "position", pos)
 }
-
-// SendError sends an error (like a panic(any...))
-func SendError(err error) {
-	panic(err)
-}
