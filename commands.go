@@ -251,7 +251,7 @@ func (b *Bot) registerCommands(client *discordgo.Session) {
 	o := 0
 	guildID := ""
 	if Debug {
-		gs, err := client.UserGuilds(1, "", "")
+		gs, err := client.UserGuilds(1, "", "", false)
 		if err != nil {
 			utils.SendAlert("commands.go - Fetching guilds for debug", err.Error())
 		} else {
@@ -275,9 +275,9 @@ func (b *Bot) registerCommands(client *discordgo.Session) {
 func (b *Bot) setupCommandsHandlers(s *discordgo.Session) {
 	if len(cmdMap) == 0 {
 		for _, c := range b.Commands {
-			utils.SendDebug(fmt.Sprintf("Setup handler for %s", c.Name))
+			utils.SendDebug("Setup handler", "command", c.Name)
 			if c.Subs != nil {
-				utils.SendDebug(fmt.Sprintf("Handler for %s is the general handler", c.Name))
+				utils.SendDebug("Using general handler", "command", c.Name)
 				cmdMap[c.Name] = b.generalHandler
 			} else {
 				cmdMap[c.Name] = c.Handler
@@ -297,7 +297,7 @@ func (b *Bot) unregisterCommands(s *discordgo.Session) {
 	if !Debug {
 		return
 	}
-	gs, err := s.UserGuilds(1, "", "")
+	gs, err := s.UserGuilds(1, "", "", false)
 	if err != nil {
 		utils.SendAlert("commands.go - Fetching guilds for debug", err.Error())
 		return

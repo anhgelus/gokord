@@ -1,8 +1,7 @@
 package utils
 
 import (
-	"fmt"
-	"log"
+	"log/slog"
 )
 
 const (
@@ -24,27 +23,27 @@ var DebugEnabled bool
 
 // SendSuccess sends a success message
 func SendSuccess(message string) {
-	log.Default().Println(AnsiGreen, message, AnsiReset)
+	slog.Info(AnsiGreen + message + AnsiReset)
 }
 
 // SendWarn sends a warning message
 func SendWarn(message string) {
-	log.Default().Println(AnsiYellow, message, AnsiReset)
+	slog.Warn(AnsiYellow + message + AnsiReset)
 }
 
 // SendDebug sends a debug message
-func SendDebug(message ...any) {
+func SendDebug(message string, args ...string) {
 	if DebugEnabled {
-		log.Default().Println(AnsiCyan, message, AnsiReset)
+		slog.Debug(AnsiCyan+message+AnsiReset, args)
 	}
 }
 
 // SendAlert sends an alert
 func SendAlert(pos string, message string) {
-	log.Default().Println(fmt.Sprintf("[%s] %s%s%s", pos, AnsiRed, message, AnsiReset))
+	slog.Error(AnsiRed+message+AnsiReset, "position", pos)
 }
 
 // SendError sends an error (like a panic(any...))
 func SendError(err error) {
-	log.Default().Panic(err)
+	panic(err)
 }
