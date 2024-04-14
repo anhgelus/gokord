@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	Debug bool
+	Debug = true
 
 	ErrBadStatusType     = errors.New("bad status type, please use the constant")
 	ErrStatusUrlNotFound = errors.New("status url not found")
