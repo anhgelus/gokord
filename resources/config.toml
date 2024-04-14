@@ -1,0 +1,14 @@
+[Main]
+Debug = false
+
+[Redis]
+Address = "localhost:6379"
+Password = ""
+DB = 0
+
+[Database]
+Host = "localhost"
+User = ""
+Password = ""
+DBName = ""
+Port = 5432
