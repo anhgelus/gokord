@@ -240,13 +240,8 @@ func (c *GCommandChoice) ToDiscordChoice() *discordgo.ApplicationCommandOptionCh
 
 // registerCommands of the Bot
 func (b *Bot) registerCommands(client *discordgo.Session) {
-	b.Commands = append(b.Commands, &Cmd{
-		ApplicationCommand: &discordgo.ApplicationCommand{
-			Name:        "ping",
-			Description: "Get the ping of the bot",
-		},
-		Handler: commands.Ping,
-	})
+	pingCmd := NewCommand("ping", "Get the ping of the bot").SetHandler(commands.Ping)
+	b.Commands = append(b.Commands, pingCmd)
 	registeredCommands = make([]*discordgo.ApplicationCommand, len(b.Commands))
 	o := 0
 	guildID := ""
@@ -259,7 +254,7 @@ func (b *Bot) registerCommands(client *discordgo.Session) {
 		}
 	}
 	for i, v := range b.Commands {
-		cmd, err := client.ApplicationCommandCreate(client.State.User.ID, guildID, v.ApplicationCommand)
+		cmd, err := client.ApplicationCommandCreate(client.State.User.ID, guildID, v.ToCmd().ApplicationCommand)
 		if err != nil {
 			utils.SendAlert("commands.go - Create application command", err.Error())
 			continue
