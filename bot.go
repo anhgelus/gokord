@@ -30,10 +30,11 @@ const (
 
 // Bot is the representation of a discord bot
 type Bot struct {
-	Token    string        // Token of the Bot
-	Status   []*Status     // Status of the Bot
-	Commands []*Cmd        // Commands of the Bot
-	Handlers []interface{} // Handlers of the Bot
+	Token    string    // Token of the Bot
+	Status   []*Status // Status of the Bot
+	Commands []*Cmd    // Commands of the Bot
+	//Handlers []interface{} // Handlers of the Bot
+	Session *discordgo.Session // Session of the Bot
 }
 
 // Status contains all required information for updating the status
@@ -93,13 +94,15 @@ func (b *Bot) Start() {
 	}()
 	b.setupCommandsHandlers(dg)
 
-	for h := range b.Handlers {
-		dg.AddHandler(h)
-	}
+	//for h := range b.Handlers {
+	//	dg.AddHandler(h)
+	//}
 
 	dg.Identify.Intents = discordgo.IntentsAll
 
 	dg.StateEnabled = true
+
+	b.Session = dg
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
