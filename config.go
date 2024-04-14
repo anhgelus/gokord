@@ -7,6 +7,7 @@ import (
 	"github.com/anhgelus/gokord/utils"
 	"github.com/pelletier/go-toml/v2"
 	"os"
+	"strconv"
 )
 
 var (
@@ -87,6 +88,18 @@ func SetupConfigs(cfgInfo []*ConfigInfo) error {
 		return err
 	}
 
+	utils.SendDebug(
+		"Base config parsed",
+		"debug",
+		strconv.FormatBool(BaseCfg.Debug),
+		"author",
+		BaseCfg.Author,
+		"database",
+		BaseCfg.Database.generateDsn(),
+		"redis",
+		BaseCfg.Redis.Address,
+	)
+
 	Debug = BaseCfg.Debug
 	utils.Author = BaseCfg.Author
 
@@ -103,10 +116,11 @@ func SetupConfigs(cfgInfo []*ConfigInfo) error {
 		return ErrImpossibleToConnectDB
 	}
 
-	_, err = BaseCfg.Redis.Get()
+	c, err := BaseCfg.Redis.Get()
 	if err != nil {
 		utils.SendAlert("config.go - connection to redis", err.Error())
 		return ErrImpossibleToConnectRedis
 	}
+	_ = c.Close()
 	return nil
 }
