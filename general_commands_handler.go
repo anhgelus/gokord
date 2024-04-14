@@ -1,8 +1,8 @@
-package common
+package gokord
 
 import (
 	"errors"
-	"github.com/anhgelus/discord-bots/common/utils"
+	"github.com/anhgelus/gokord/utils"
 	"github.com/bwmarrin/discordgo"
 )
 

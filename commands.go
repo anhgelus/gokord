@@ -1,9 +1,9 @@
-package common
+package gokord
 
 import (
 	"fmt"
-	"github.com/anhgelus/discord-bots/common/commands"
-	"github.com/anhgelus/discord-bots/common/utils"
+	"github.com/anhgelus/gokord/commands"
+	"github.com/anhgelus/gokord/utils"
 	"github.com/bwmarrin/discordgo"
 )
 

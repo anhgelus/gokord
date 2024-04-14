@@ -2,7 +2,7 @@ package commands
 
 import (
 	"fmt"
-	"github.com/anhgelus/discord-bots/common/utils"
+	"github.com/anhgelus/gokord/utils"
 	"github.com/bwmarrin/discordgo"
 	"time"
 )

@@ -1,10 +1,10 @@
-package common
+package gokord
 
 import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"github.com/anhgelus/discord-bots/common/utils"
+	"github.com/anhgelus/gokord/utils"
 	"github.com/pelletier/go-toml/v2"
 	"os"
 )

@@ -1,4 +1,4 @@
-module github.com/anhgelus/discord-bots/common
+module github.com/anhgelus/gokord
 
 go 1.21
 
