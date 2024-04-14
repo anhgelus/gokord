@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/anhgelus/gokord/utils"
 	"github.com/pelletier/go-toml/v2"
+	"log/slog"
 	"os"
 	"strconv"
 )
@@ -88,7 +89,7 @@ func SetupConfigs(cfgInfo []*ConfigInfo) error {
 		return err
 	}
 
-	utils.SendDebug(
+	slog.Info(
 		"Base config parsed",
 		"debug",
 		strconv.FormatBool(BaseCfg.Debug),
