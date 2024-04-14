@@ -57,7 +57,11 @@ func (b *Bot) Start() {
 	go func() {
 		time.Sleep(30 * time.Second)
 		utils.SendSuccess(fmt.Sprintf("Bot started as %s", dg.State.User.Username))
-		utils.NewTimer(30*time.Second, func(_ chan struct{}) {
+		utils.NewTimer(30*time.Second, func(stop chan struct{}) {
+			if b.Status == nil {
+				stop <- struct{}{}
+				return
+			}
 			rand.NewSource(time.Now().Unix())
 			r := rand.Intn(len(b.Status))
 			s := b.Status[r]
