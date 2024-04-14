@@ -34,7 +34,7 @@ type Bot struct {
 	Status   []*Status // Status of the Bot
 	Commands []*Cmd    // Commands of the Bot
 	//Handlers []interface{} // Handlers of the Bot
-	Session *discordgo.Session // Session of the Bot
+	AfterInit func(s *discordgo.Session) // AfterInit is called after the initialization process of the Bot
 }
 
 // Status contains all required information for updating the status
@@ -44,7 +44,7 @@ type Status struct {
 	Url     string // Url of the StreamingStatus
 }
 
-// Start the Bot
+// Start the Bot (blocking instruction)
 func (b *Bot) Start() {
 	dg, err := discordgo.New("Bot " + b.Token) // Define connection to discord API with bot token
 	if err != nil {
@@ -102,7 +102,7 @@ func (b *Bot) Start() {
 
 	dg.StateEnabled = true
 
-	b.Session = dg
+	b.AfterInit(dg)
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
