@@ -7,13 +7,12 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// Credentials of redis
-var Credentials RedisCredentials
-
-// Ctx background
-var Ctx = context.Background()
-
-var client *redis.Client
+var (
+	// Credentials of redis
+	Credentials RedisCredentials
+	// Ctx background
+	Ctx = context.Background()
+)
 
 // UserBase is the minimum struct required to store a used in redis
 type UserBase struct {
@@ -32,25 +31,17 @@ func (p *UserBase) GenKey() string {
 
 // Get the redis.Client with the given RedisCredentials
 func (rc *RedisCredentials) Get() (*redis.Client, error) {
-	if client != nil {
-		c := redis.NewClient(&redis.Options{
-			Addr:     rc.Address,
-			Password: rc.Password,
-			DB:       rc.DB,
-		})
-		if c == nil {
-			return nil, ErrNilClient
-		}
-		err := client.Ping(context.Background()).Err()
-		if err != nil {
-			return nil, err
-		}
-		client = c
+	client := redis.NewClient(&redis.Options{
+		Addr:     rc.Address,
+		Password: rc.Password,
+		DB:       rc.DB,
+	})
+	if client == nil {
+		return nil, ErrNilClient
 	}
-	s := client.Ping(context.Background())
-	var err error
-	if s != nil {
-		err = s.Err()
+	err := client.Ping(Ctx).Err()
+	if err != nil {
+		return nil, err
 	}
 	return client, err
 }
