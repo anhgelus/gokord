@@ -19,8 +19,6 @@ const (
 	AnsiYellowBold  = "\033[33;1m"
 )
 
-var DebugEnabled = true
-
 // SendSuccess sends a success message
 func SendSuccess(message string, args ...any) {
 	if len(args) == 0 {
@@ -41,13 +39,11 @@ func SendWarn(message string, args ...any) {
 
 // SendDebug sends a debug message
 func SendDebug(message string, args ...any) {
-	if DebugEnabled {
-		if len(args) == 0 {
-			slog.Debug(AnsiCyan + message + AnsiReset)
-			return
-		}
-		slog.Debug(AnsiCyan+message+AnsiReset, args...)
+	if len(args) == 0 {
+		slog.Debug(AnsiCyan + message + AnsiReset)
+		return
 	}
+	slog.Debug(AnsiCyan+message+AnsiReset, args...)
 }
 
 // SendAlert sends an alert

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/anhgelus/gokord/utils"
 	"github.com/pelletier/go-toml/v2"
+	"log/slog"
 	"os"
 )
 
@@ -89,6 +90,9 @@ func SetupConfigs(cfgInfo []*ConfigInfo) error {
 
 	Debug = BaseCfg.Debug
 	utils.Author = BaseCfg.Author
+	if Debug {
+		slog.SetLogLoggerLevel(slog.LevelDebug)
+	}
 
 	for _, cfg := range cfgInfo {
 		err = Get(cfg.Cfg, cfg.Name, cfg.Default)

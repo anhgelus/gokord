@@ -57,7 +57,7 @@ func (b *Bot) Start() {
 		utils.SendAlert("bot.go - Start", err.Error())
 	}
 	go func() {
-		time.Sleep(30 * time.Second)
+		time.Sleep(10 * time.Second)
 		utils.SendSuccess(fmt.Sprintf("Bot started as %s", dg.State.User.Username))
 		utils.NewTimer(30*time.Second, func(stop chan struct{}) {
 			if b.Status == nil {
