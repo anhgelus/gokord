@@ -27,7 +27,7 @@ func SendSuccess(message string, args ...any) {
 		slog.Info(AnsiGreen + message + AnsiReset)
 		return
 	}
-	slog.Info(AnsiGreen+message+AnsiReset, args)
+	slog.Info(AnsiGreen+message+AnsiReset, args...)
 }
 
 // SendWarn sends a warning message
@@ -36,7 +36,7 @@ func SendWarn(message string, args ...any) {
 		slog.Warn(AnsiYellow + message + AnsiReset)
 		return
 	}
-	slog.Warn(AnsiYellow+message+AnsiReset, args)
+	slog.Warn(AnsiYellow+message+AnsiReset, args...)
 }
 
 // SendDebug sends a debug message
@@ -46,7 +46,7 @@ func SendDebug(message string, args ...any) {
 			slog.Debug(AnsiCyan + message + AnsiReset)
 			return
 		}
-		slog.Debug(AnsiCyan+message+AnsiReset, args)
+		slog.Debug(AnsiCyan+message+AnsiReset, args...)
 	}
 }
 
@@ -56,5 +56,6 @@ func SendAlert(pos string, message string, args ...any) {
 		slog.Error(AnsiRed+message+AnsiReset, "position", pos)
 		return
 	}
-	slog.Error(AnsiRed+message+AnsiReset, "position", pos, args)
+	args = append([]any{"position", pos}, args...)
+	slog.Error(AnsiRed+message+AnsiReset, args...)
 }
