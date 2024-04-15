@@ -49,6 +49,7 @@ func (b *Bot) Start() {
 	dg, err := discordgo.New("Bot " + b.Token) // Define connection to discord API with bot token
 	if err != nil {
 		utils.SendAlert("bot.go - Token", err.Error())
+		return
 	}
 
 	err = dg.Open() // Bot start
