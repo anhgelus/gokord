@@ -59,9 +59,9 @@ func (b *Bot) generalHandler(client *discordgo.Session, i *discordgo.Interaction
 			return
 		}
 	}
-	utils.SendDebug("subs", "len", len(cmd.Subs))
+	utils.SendWarn("subs", "len", len(cmd.Subs))
 	for _, s := range cmd.Subs {
-		utils.SendDebug("name of current sub", "name", s.Name)
+		utils.SendWarn("name of current sub", "name", s.Name)
 		if subInfo.Name == s.Name {
 			s.Handler(client, i)
 		}
