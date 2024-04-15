@@ -59,11 +59,10 @@ func (b *Bot) generalHandler(client *discordgo.Session, i *discordgo.Interaction
 			return
 		}
 	}
-	utils.SendWarn("subs", "len", len(cmd.Subs))
 	for _, s := range cmd.Subs {
-		utils.SendWarn("name of current sub", "name", s.Name)
 		if subInfo.Name == s.Name {
 			s.Handler(client, i)
+			return
 		}
 	}
 	utils.SendWarn("Subcommand not found", "name", data.Name, "subInfo name", subInfo.Name)
