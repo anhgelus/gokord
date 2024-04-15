@@ -23,22 +23,38 @@ var DebugEnabled = true
 
 // SendSuccess sends a success message
 func SendSuccess(message string, args ...any) {
+	if len(args) == 0 {
+		slog.Info(AnsiGreen + message + AnsiReset)
+		return
+	}
 	slog.Info(AnsiGreen+message+AnsiReset, args)
 }
 
 // SendWarn sends a warning message
 func SendWarn(message string, args ...any) {
+	if len(args) == 0 {
+		slog.Warn(AnsiYellow + message + AnsiReset)
+		return
+	}
 	slog.Warn(AnsiYellow+message+AnsiReset, args)
 }
 
 // SendDebug sends a debug message
 func SendDebug(message string, args ...any) {
 	if DebugEnabled {
+		if len(args) == 0 {
+			slog.Debug(AnsiCyan + message + AnsiReset)
+			return
+		}
 		slog.Debug(AnsiCyan+message+AnsiReset, args)
 	}
 }
 
 // SendAlert sends an alert
-func SendAlert(pos string, message string) {
-	slog.Error(AnsiRed+message+AnsiReset, "position", pos)
+func SendAlert(pos string, message string, args ...any) {
+	if len(args) == 0 {
+		slog.Error(AnsiRed+message+AnsiReset, "position", pos)
+		return
+	}
+	slog.Error(AnsiRed+message+AnsiReset, "position", pos, args)
 }

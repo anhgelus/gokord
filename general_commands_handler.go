@@ -28,6 +28,7 @@ func (b *Bot) generalHandler(client *discordgo.Session, i *discordgo.Interaction
 	}
 	subInfo := data.Options[0]
 	if subInfo == nil {
+		utils.SendWarn("subInfo == nil", "name", data.Name)
 		err := resp.IsEphemeral().Message("No subcommand identified").Send()
 		if err != nil {
 			utils.SendAlert("general_commands_handler.go - No subcommand identified reply", err.Error())
@@ -42,6 +43,7 @@ func (b *Bot) generalHandler(client *discordgo.Session, i *discordgo.Interaction
 		}
 	}
 	if cmd == nil {
+		utils.SendWarn("cmd == nil", "name", data.Name)
 		err := resp.IsEphemeral().Message("Command not found").Send()
 		if err != nil {
 			utils.SendAlert("general_commands_handler.go - Command not found reply", err.Error())
@@ -62,6 +64,7 @@ func (b *Bot) generalHandler(client *discordgo.Session, i *discordgo.Interaction
 			s.Handler(client, i)
 		}
 	}
+	utils.SendWarn("Subcommand not found", "name", data.Name, "subInfo name", subInfo.Name)
 	err := resp.IsEphemeral().Message("Subcommand not found").Send()
 	if err != nil {
 		utils.SendAlert("general_commands_handler.go - Subcommand not found reply", err.Error())
