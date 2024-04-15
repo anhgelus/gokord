@@ -22,17 +22,17 @@ const (
 var DebugEnabled = true
 
 // SendSuccess sends a success message
-func SendSuccess(message string) {
-	slog.Info(AnsiGreen + message + AnsiReset)
+func SendSuccess(message string, args ...any) {
+	slog.Info(AnsiGreen+message+AnsiReset, args)
 }
 
 // SendWarn sends a warning message
-func SendWarn(message string) {
-	slog.Warn(AnsiYellow + message + AnsiReset)
+func SendWarn(message string, args ...any) {
+	slog.Warn(AnsiYellow+message+AnsiReset, args)
 }
 
 // SendDebug sends a debug message
-func SendDebug(message string, args ...string) {
+func SendDebug(message string, args ...any) {
 	if DebugEnabled {
 		slog.Debug(AnsiCyan+message+AnsiReset, args)
 	}

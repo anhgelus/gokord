@@ -5,6 +5,7 @@ import (
 	"github.com/anhgelus/gokord/commands"
 	"github.com/anhgelus/gokord/utils"
 	"github.com/bwmarrin/discordgo"
+	"strconv"
 )
 
 // Cmd is a discordgo.ApplicationCommand + its handler
@@ -153,9 +154,12 @@ func (c *GeneralCommand) ToCmd() *Cmd {
 	var subs []*discordgo.ApplicationCommandOption
 	for _, s := range c.Subs {
 		sub := s.ToSubCmd()
+		utils.SendDebug(sub.Name)
 		subsCmd = append(subsCmd, sub.ToSimple())
 		subs = append(subs, sub.ApplicationCommandOption)
 	}
+	utils.SendDebug(strconv.Itoa(len(subs)))
+	base.Options = subs
 	return &Cmd{
 		ApplicationCommand: &base,
 		Handler:            c.Handler,
