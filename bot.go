@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/anhgelus/gokord/utils"
 	"github.com/bwmarrin/discordgo"
-	"math/rand"
+	"math/rand/v2"
 	"os"
 	"os/signal"
 	"sync"
@@ -92,8 +92,8 @@ func (b *Bot) Start() {
 			stop <- struct{}{}
 			return
 		}
-		rand.NewSource(time.Now().Unix())
-		r := rand.Intn(len(b.Status))
+		l := len(b.Status)
+		r := rand.New(rand.NewPCG(uint64(time.Now().Unix()), uint64(l))).UintN(uint(l))
 		s := b.Status[r]
 		if s.Type == GameStatus {
 			err = dg.UpdateGameStatus(0, s.Content)
