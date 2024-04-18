@@ -14,18 +14,23 @@ var (
 	Ctx = context.Background()
 )
 
-// UserBase is the minimum struct required to store a used in redis
-type UserBase struct {
+// RedisBase is an interface helping use of redis to store/cache data
+type RedisBase interface {
+	GenKey()
+}
+
+// RedisUser is the default implementation of RedisBase for a Discord User
+type RedisUser struct {
+	RedisBase
 	DiscordID string
 	GuildID   string
 }
 
 var (
-	ErrGuildIDDiscordIDNotPresent = errors.New("guild_id or discord_id not informed")
-	ErrNilClient                  = errors.New("redis.NewClient is nil")
+	ErrNilClient = errors.New("redis.NewClient is nil")
 )
 
-func (p *UserBase) GenKey() string {
+func (p *RedisUser) GenKey() string {
 	return fmt.Sprintf("%s:%s", p.GuildID, p.DiscordID)
 }
 
