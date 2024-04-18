@@ -62,8 +62,8 @@ func (b *Bot) Start() {
 	var wg sync.WaitGroup
 	st1 := time.Now()
 	// register commands
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
 		b.registerCommands(dg)
 		utils.SendSuccess("Commands registered")
 		wg.Done()
