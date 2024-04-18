@@ -16,7 +16,7 @@ var (
 
 // RedisBase is an interface helping use of redis to store/cache data
 type RedisBase interface {
-	GenKey()
+	GenKey(key string) string // GenKey generates the key to use
 }
 
 // RedisUser is the default implementation of RedisBase for a Discord User
@@ -30,8 +30,8 @@ var (
 	ErrNilClient = errors.New("redis.NewClient is nil")
 )
 
-func (p *RedisUser) GenKey() string {
-	return fmt.Sprintf("%s:%s", p.GuildID, p.DiscordID)
+func (p *RedisUser) GenKey(key string) string {
+	return fmt.Sprintf("%s:%s:%s", p.GuildID, p.DiscordID, key)
 }
 
 // Get the redis.Client with the given RedisCredentials

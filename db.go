@@ -11,8 +11,8 @@ var DB *gorm.DB
 
 // DataBase is an interface with basic methods to load and save data
 type DataBase interface {
-	Load()
-	Save()
+	Load() error // Load data from the database
+	Save() error // Save data into the database
 }
 
 // Connect to the postgres database using the given config.DatabaseCredentials
