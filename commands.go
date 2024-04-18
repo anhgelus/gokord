@@ -302,7 +302,7 @@ func (b *Bot) unregisterCommands(s *discordgo.Session) {
 	for _, v := range registeredCommands {
 		err = s.ApplicationCommandDelete(s.State.User.ID, guildID, v.ID)
 		if err != nil {
-			utils.SendAlert("commands.go - Create application command", err.Error())
+			utils.SendAlert("commands.go - Delete application command", err.Error())
 			continue
 		}
 	}

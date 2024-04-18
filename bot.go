@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -32,7 +33,7 @@ const (
 type Bot struct {
 	Token    string            // Token of the Bot
 	Status   []*Status         // Status of the Bot
-	Commands []*GeneralCommand // Commands of the Bot
+	Commands []*GeneralCommand // Commands of the Bot, use NewCommand to create easily a new command
 	//Handlers []interface{} // Handlers of the Bot
 	AfterInit func(s *discordgo.Session) // AfterInit is called after the initialization process of the Bot
 }
@@ -46,52 +47,26 @@ type Status struct {
 
 // Start the Bot (blocking instruction)
 func (b *Bot) Start() {
-	dg, err := discordgo.New("Bot " + b.Token) // Define connection to discord API with bot token
+	dg, err := discordgo.New("Bot " + b.Token) // New connection to the discord API with bot token
 	if err != nil {
 		utils.SendAlert("bot.go - Token", err.Error())
 		return
 	}
 
-	err = dg.Open() // Bot start
+	err = dg.Open() // Starts the bot
 	if err != nil {
 		utils.SendAlert("bot.go - Start", err.Error())
 	}
-	go func() {
-		time.Sleep(10 * time.Second)
-		utils.SendSuccess(fmt.Sprintf("Bot started as %s", dg.State.User.Username))
-		utils.NewTimer(30*time.Second, func(stop chan struct{}) {
-			if b.Status == nil {
-				stop <- struct{}{}
-				return
-			}
-			rand.NewSource(time.Now().Unix())
-			r := rand.Intn(len(b.Status))
-			s := b.Status[r]
-			if s.Type == GameStatus {
-				err = dg.UpdateGameStatus(0, s.Content)
-			} else if s.Type == WatchStatus {
-				err = dg.UpdateWatchStatus(0, s.Content)
-			} else if s.Type == StreamingStatus {
-				if s.Url == "" {
-					err = ErrStatusUrlNotFound
-				} else {
-					err = dg.UpdateStreamingStatus(0, s.Content, s.Url)
-				}
-			} else if s.Type == ListeningStatus {
-				err = dg.UpdateListeningStatus(s.Content)
-			} else {
-				err = ErrBadStatusType
-			}
-			if err != nil {
-				utils.SendAlert("bot.go - Update status", err.Error())
-				err = nil
-			}
-		})
-	}()
+	dg.Identify.Intents = discordgo.IntentsAll
 
+	var wg sync.WaitGroup
+	st1 := time.Now()
+	// register commands
 	go func() {
+		wg.Add(1)
 		b.registerCommands(dg)
 		utils.SendSuccess("Commands registered")
+		wg.Done()
 	}()
 	b.setupCommandsHandlers(dg)
 
@@ -99,18 +74,56 @@ func (b *Bot) Start() {
 	//	dg.AddHandler(h)
 	//}
 
-	dg.Identify.Intents = discordgo.IntentsAll
-
-	dg.StateEnabled = true
-
+	// do after init (mainly used to register handlers)
 	b.AfterInit(dg)
+
+	// wait until all setup goroutines are finished
+	wg.Wait()
+	st2 := time.Now()
+	delta := float64(st2.Unix() - st1.Unix())
+	to := dg.Client.Timeout.Seconds()
+	// if the setup was faster than the http client timeout, wait
+	if delta < dg.Client.Timeout.Seconds() {
+		time.Sleep(time.Duration(to-delta) * time.Second)
+	}
+	utils.SendSuccess(fmt.Sprintf("Bot started as %s", dg.State.User.Username))
+	utils.NewTimer(30*time.Second, func(stop chan struct{}) {
+		if b.Status == nil {
+			stop <- struct{}{}
+			return
+		}
+		rand.NewSource(time.Now().Unix())
+		r := rand.Intn(len(b.Status))
+		s := b.Status[r]
+		if s.Type == GameStatus {
+			err = dg.UpdateGameStatus(0, s.Content)
+		} else if s.Type == WatchStatus {
+			err = dg.UpdateWatchStatus(0, s.Content)
+		} else if s.Type == StreamingStatus {
+			if s.Url == "" {
+				err = ErrStatusUrlNotFound
+			} else {
+				err = dg.UpdateStreamingStatus(0, s.Content, s.Url)
+			}
+		} else if s.Type == ListeningStatus {
+			err = dg.UpdateListeningStatus(s.Content)
+		} else {
+			err = ErrBadStatusType
+		}
+		if err != nil {
+			utils.SendAlert("bot.go - Update status", err.Error())
+			err = nil
+		}
+	})
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
 
-	utils.SendDebug("Unregistering local commands")
-	b.unregisterCommands(dg)
+	if Debug {
+		utils.SendDebug("Unregistering local commands")
+		b.unregisterCommands(dg)
+	}
 
 	err = dg.Close() // Bot Shutdown
 	if err != nil {
