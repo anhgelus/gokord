@@ -33,7 +33,7 @@ type GeneralCommand struct {
 	HasSub      bool
 	IsSub       bool
 	Name        string
-	Permission  int64
+	Permission  *int64
 	CanDM       bool
 	Description string
 	Options     []*GCommandOption
@@ -124,7 +124,7 @@ func (c *GeneralCommand) DM() *GeneralCommand {
 }
 
 // SetPermission of the GeneralCommand
-func (c *GeneralCommand) SetPermission(p int64) *GeneralCommand {
+func (c *GeneralCommand) SetPermission(p *int64) *GeneralCommand {
 	c.Permission = p
 	return c
 }
@@ -132,11 +132,13 @@ func (c *GeneralCommand) SetPermission(p int64) *GeneralCommand {
 // ToCmd turns GeneralCommand into a Cmd (internal use of the API only)
 func (c *GeneralCommand) ToCmd() *Cmd {
 	base := discordgo.ApplicationCommand{
-		Type:                     discordgo.ChatApplicationCommand,
-		Name:                     c.Name,
-		DefaultMemberPermissions: &c.Permission,
-		DMPermission:             &c.CanDM,
-		Description:              c.Description,
+		Type:         discordgo.ChatApplicationCommand,
+		Name:         c.Name,
+		DMPermission: &c.CanDM,
+		Description:  c.Description,
+	}
+	if c.Permission != nil {
+		base.DefaultMemberPermissions = c.Permission
 	}
 	if !c.HasSub {
 		var options []*discordgo.ApplicationCommandOption
@@ -239,10 +241,35 @@ func (c *GCommandChoice) ToDiscordChoice() *discordgo.ApplicationCommandOptionCh
 	}
 }
 
-// registerCommands of the Bot
-func (b *Bot) registerCommands(client *discordgo.Session) {
-	pingCmd := NewCommand("ping", "Get the ping of the bot").SetHandler(commands.Ping)
-	b.Commands = append(b.Commands, pingCmd)
+// updateCommands of the Bot
+func (b *Bot) updateCommands(client *discordgo.Session) {
+	// add ping command
+	b.Commands = append(
+		b.Commands,
+		NewCommand("ping", "Get the ping of the bot").SetHandler(commands.Ping),
+	)
+	// removing old commands
+	appID := client.State.Application.ID
+	cmd, err := client.ApplicationCommands(appID, "")
+	if err != nil {
+		utils.SendAlert("commands.go - Fetching slash commands", err.Error())
+		return
+	}
+	for _, c := range cmd {
+		valid := false
+		for _, bc := range b.Commands {
+			if bc.Name == c.Name {
+				valid = true
+			}
+		}
+		if !valid {
+			err = client.ApplicationCommandDelete(appID, "", c.ApplicationID)
+			if err != nil {
+				utils.SendAlert("commands.go - Impossible to delete slash command", "name", c.Name)
+			}
+		}
+	}
+	// adding commands
 	registeredCommands = make([]*discordgo.ApplicationCommand, len(b.Commands))
 	o := 0
 	guildID := ""
@@ -250,6 +277,7 @@ func (b *Bot) registerCommands(client *discordgo.Session) {
 		gs, err := client.UserGuilds(1, "", "", false)
 		if err != nil {
 			utils.SendAlert("commands.go - Fetching guilds for debug", err.Error())
+			return
 		} else {
 			guildID = gs[0].ID
 		}
@@ -288,8 +316,8 @@ func (b *Bot) setupCommandsHandlers(s *discordgo.Session) {
 	})
 }
 
-// unregisterCommands used to unregister commands after closing the bot (Debug = true only)
-func (b *Bot) unregisterCommands(s *discordgo.Session) {
+// unregisterGuildCommands used to unregister commands after closing the bot (Debug = true only)
+func (b *Bot) unregisterGuildCommands(s *discordgo.Session) {
 	if !Debug {
 		return
 	}

@@ -64,8 +64,8 @@ func (b *Bot) Start() {
 	// register commands
 	wg.Add(1)
 	go func() {
-		b.registerCommands(dg)
-		utils.SendSuccess("Commands registered")
+		b.updateCommands(dg)
+		utils.SendSuccess("Commands updated")
 		wg.Done()
 	}()
 	b.setupCommandsHandlers(dg)
@@ -122,7 +122,7 @@ func (b *Bot) Start() {
 
 	if Debug {
 		utils.SendDebug("Unregistering local commands")
-		b.unregisterCommands(dg)
+		b.unregisterGuildCommands(dg)
 	}
 
 	err = dg.Close() // Bot Shutdown
