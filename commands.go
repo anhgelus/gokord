@@ -286,6 +286,8 @@ func (b *Bot) updateCommands(client *discordgo.Session, force bool) {
 					err.Error(),
 					"name",
 					c.Name,
+					"id",
+					c.ApplicationID,
 				)
 			}
 		}
