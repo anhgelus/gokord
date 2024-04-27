@@ -5,6 +5,7 @@ import (
 	"github.com/anhgelus/gokord/commands"
 	"github.com/anhgelus/gokord/utils"
 	"github.com/bwmarrin/discordgo"
+	"slices"
 )
 
 // Cmd is a discordgo.ApplicationCommand + its handler
@@ -129,6 +130,14 @@ func (c *GeneralCommand) SetPermission(p *int64) *GeneralCommand {
 	return c
 }
 
+// Is returns true if the GeneralCommand is approximately the same as *discordgo.ApplicationCommand
+func (c *GeneralCommand) Is(cmd *discordgo.ApplicationCommand) bool {
+	return cmd.DefaultMemberPermissions == c.Permission &&
+		cmd.Name == c.Name &&
+		cmd.Description == c.Description &&
+		len(cmd.Options) == len(c.Options)
+}
+
 // ToCmd turns GeneralCommand into a Cmd (internal use of the API only)
 func (c *GeneralCommand) ToCmd() *Cmd {
 	base := discordgo.ApplicationCommand{
@@ -248,18 +257,24 @@ func (b *Bot) updateCommands(client *discordgo.Session) {
 		b.Commands,
 		NewCommand("ping", "Get the ping of the bot").SetHandler(commands.Ping),
 	)
-	// removing old commands
+	// removing old commands and skipping already registered commands
 	appID := client.State.Application.ID
-	cmd, err := client.ApplicationCommands(appID, "")
+	cmdRegistered, err := client.ApplicationCommands(appID, "")
 	if err != nil {
 		utils.SendAlert("commands.go - Fetching slash commands", err.Error())
 		return
 	}
-	for _, c := range cmd {
+	var toSkip []*discordgo.ApplicationCommand
+	for _, c := range cmdRegistered {
 		valid := false
 		for _, bc := range b.Commands {
 			if bc.Name == c.Name {
+				// do not delete command
 				valid = true
+				if bc.Is(c) {
+					// add command to skip
+					toSkip = append(toSkip, c)
+				}
 			}
 		}
 		if !valid {
@@ -269,7 +284,7 @@ func (b *Bot) updateCommands(client *discordgo.Session) {
 			}
 		}
 	}
-	// adding commands
+	// registering commands
 	registeredCommands = make([]*discordgo.ApplicationCommand, len(b.Commands))
 	o := 0
 	guildID := ""
@@ -283,16 +298,31 @@ func (b *Bot) updateCommands(client *discordgo.Session) {
 		}
 	}
 	for i, v := range b.Commands {
-		cmd, err := client.ApplicationCommandCreate(client.State.User.ID, guildID, v.ToCmd().ApplicationCommand)
-		if err != nil {
-			utils.SendAlert("commands.go - Create application command", err.Error())
-			continue
+		var cmd *discordgo.ApplicationCommand
+		in := slices.IndexFunc(toSkip, func(c *discordgo.ApplicationCommand) bool {
+			return v.Name == c.Name
+		})
+		// if command is already registered, skip
+		if in != -1 {
+			utils.SendDebug("Skip command", "name", v.Name)
+			cmd = toSkip[in]
+		} else {
+			cmd, err = client.ApplicationCommandCreate(client.State.User.ID, guildID, v.ToCmd().ApplicationCommand)
+			if err != nil {
+				utils.SendAlert("commands.go - Create application command", err.Error())
+				continue
+			}
 		}
 		registeredCommands[i] = cmd
-		utils.SendSuccess(fmt.Sprintf("[COMMAND]: %s initialized", v.Name))
+		utils.SendSuccess(fmt.Sprintf("Command %s initialized", v.Name))
 		o += 1
 	}
-	utils.SendSuccess(fmt.Sprintf("[Recaps] %d/%d commands has been loaded", o, len(b.Commands)))
+	l := len(b.Commands)
+	if l != o {
+		utils.SendWarn(fmt.Sprintf("%d/%d commands has been loaded", o, l))
+	} else {
+		utils.SendSuccess(fmt.Sprintf("%d/%d commands has been loaded", o, l))
+	}
 }
 
 // setupCommandsHandlers of the Bot
