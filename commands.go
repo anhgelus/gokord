@@ -281,7 +281,12 @@ func (b *Bot) updateCommands(client *discordgo.Session, force bool) {
 		if !valid {
 			err = client.ApplicationCommandDelete(appID, "", c.ApplicationID)
 			if err != nil {
-				utils.SendAlert("commands.go - Impossible to delete slash command", "name", c.Name)
+				utils.SendAlert(
+					"commands.go - Deleting slash command",
+					err.Error(),
+					"name",
+					c.Name,
+				)
 			}
 		}
 	}
