@@ -250,8 +250,9 @@ func (c *GCommandChoice) ToDiscordChoice() *discordgo.ApplicationCommandOptionCh
 	}
 }
 
-// updateCommands of the Bot
-func (b *Bot) updateCommands(client *discordgo.Session) {
+// updateCommands of the Bot ;
+// force forces the registration of already registered commands
+func (b *Bot) updateCommands(client *discordgo.Session, force bool) {
 	// add ping command
 	b.Commands = append(
 		b.Commands,
@@ -271,7 +272,7 @@ func (b *Bot) updateCommands(client *discordgo.Session) {
 			if bc.Name == c.Name {
 				// do not delete command
 				valid = true
-				if bc.Is(c) {
+				if bc.Is(c) && !force {
 					// add command to skip
 					toSkip = append(toSkip, c)
 				}

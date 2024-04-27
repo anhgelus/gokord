@@ -46,7 +46,7 @@ type Status struct {
 }
 
 // Start the Bot (blocking instruction)
-func (b *Bot) Start() {
+func (b *Bot) Start(forceCmdRegistering bool) {
 	dg, err := discordgo.New("Bot " + b.Token) // New connection to the discord API with bot token
 	if err != nil {
 		utils.SendAlert("bot.go - Token", err.Error())
@@ -64,7 +64,7 @@ func (b *Bot) Start() {
 	// register commands
 	wg.Add(1)
 	go func() {
-		b.updateCommands(dg)
+		b.updateCommands(dg, forceCmdRegistering)
 		utils.SendSuccess("Commands updated")
 		wg.Done()
 	}()
