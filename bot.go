@@ -35,7 +35,10 @@ type Bot struct {
 	Status   []*Status         // Status of the Bot
 	Commands []*GeneralCommand // Commands of the Bot, use NewCommand to create easily a new command
 	//Handlers []interface{} // Handlers of the Bot
-	AfterInit func(s *discordgo.Session) // AfterInit is called after the initialization process of the Bot
+	AfterInit   func(s *discordgo.Session) // AfterInit is called after the initialization process of the Bot
+	Version     *Version
+	Innovations []*Innovation
+	Name        string
 }
 
 // Status contains all required information for updating the status
