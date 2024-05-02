@@ -42,15 +42,13 @@ func GetCommandsUpdate(bot *Bot) *InnovationCommands {
 	botData := BotData{Name: bot.Name}
 	err := botData.Load()
 	if err != nil {
-		utils.SendAlert("version.go", "Loading bot data", "error", err.Error(), "name", bot.Name)
+		utils.SendAlert("version.go - Loading bot data for commands update", err.Error(), "name", bot.Name)
 		return nil
 	}
 	ver, err := ParseVersion(botData.Version)
 	if err != nil {
 		utils.SendAlert(
-			"version.go",
-			"Parsing version",
-			"error",
+			"version.go - Parsing version to compare for commands update",
 			err.Error(),
 			"version",
 			botData.Version,
@@ -186,6 +184,22 @@ func (v *Version) String() string {
 		return fmt.Sprintf("%d.%d.%d-%s", v.Major, v.Minor, v.Patch, v.PreRelease)
 	}
 	return fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch)
+}
+
+func (v *Version) UpdateBotVersion(bot *Bot) {
+	botData := BotData{Name: bot.Name}
+	err := botData.Load()
+	if err != nil {
+		utils.SendAlert("version.go - Loading bot data for update version", err.Error(), "name", bot.Name)
+		return
+	}
+	botData.Version = v.String()
+	err = botData.Save()
+	if err != nil {
+		utils.SendAlert("version.go - Saving bot data for update version", err.Error(), "name", bot.Name)
+		return
+	}
+	utils.SendSuccess("Updated version of the bot")
 }
 
 func (v *Version) SetMajor(m uint) *Version {
