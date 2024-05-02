@@ -3,6 +3,8 @@ package gokord
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/anhgelus/gokord/utils"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -15,8 +17,8 @@ type Version struct {
 }
 
 type Innovation struct {
-	Version  *Version              `json:"version"`
-	Commands []*InnovationCommands `json:"commands"`
+	Version  *Version            `json:"version"`
+	Commands *InnovationCommands `json:"commands"`
 }
 
 type InnovationCommands struct {
@@ -32,56 +34,108 @@ func LoadInnovationFromJson(b []byte) ([]*Innovation, error) {
 	return i, err
 }
 
-//func GetCommandsUpdate(bot *Bot) *InnovationCommands {
-//	lat, id := getLatestInnovation(bot.Innovations)
-//	if lat == nil {
-//		return nil
-//	}
-//	botData := BotData{Name: bot.Name}
-//	err := botData.Load()
-//	if err != nil {
-//		utils.SendAlert("version.go", "Loading bot data", "error", err.Error(), "name", bot.Name)
-//		return nil
-//	}
-//	ver, err := ParseVersion(botData.Version)
-//	if err != nil {
-//		utils.SendAlert(
-//			"version.go",
-//			"Parsing version",
-//			"error",
-//			err.Error(),
-//			"version",
-//			botData.Version,
-//		)
-//		return nil
-//	}
-//	// if there is no update
-//	if lat.Version.Is(ver) {
-//		return &InnovationCommands{}
-//	} else if !lat.Version.NewerThan(ver) {
-//		utils.SendWarn(
-//			"Bot has a newer version than the latest version in Innovation",
-//			"bot_version",
-//			botData.Version,
-//			"innovation_version",
-//			lat.Version,
-//		)
-//	}
-//	var after []*Innovation
-//	remaining := bot.Innovations
-//	version := lat
-//	for version.Version.NewerThan(ver) {
-//		after = append(after, version)
-//		var t []*Innovation
-//		if id == len(remaining)-1 {
-//			t = remaining[:id]
-//		} else {
-//			t = slices.Delete(remaining, id, id+1)
-//		}
-//		version, id = getLatestInnovation(t)
-//	}
-//	slices.Reverse(after)
-//}
+func GetCommandsUpdate(bot *Bot) *InnovationCommands {
+	lat, id := getLatestInnovation(bot.Innovations)
+	if lat == nil {
+		return nil
+	}
+	botData := BotData{Name: bot.Name}
+	err := botData.Load()
+	if err != nil {
+		utils.SendAlert("version.go", "Loading bot data", "error", err.Error(), "name", bot.Name)
+		return nil
+	}
+	ver, err := ParseVersion(botData.Version)
+	if err != nil {
+		utils.SendAlert(
+			"version.go",
+			"Parsing version",
+			"error",
+			err.Error(),
+			"version",
+			botData.Version,
+		)
+		return nil
+	}
+	// if there is no update
+	if lat.Version.Is(ver) {
+		return &InnovationCommands{}
+	} else if !lat.Version.NewerThan(ver) {
+		utils.SendWarn(
+			"Bot has a newer version than the latest version in Innovation",
+			"bot_version",
+			botData.Version,
+			"innovation_version",
+			lat.Version,
+		)
+	}
+	var after []*Innovation
+	remaining := bot.Innovations
+	slices.SortFunc(remaining, func(a, b *Innovation) int {
+		if a.Version.Is(b.Version) {
+			return 0
+		} else if a.Version.NewerThan(b.Version) {
+			return 1
+		} else {
+			return -1
+		}
+	})
+	slices.Reverse(remaining)
+	version := lat
+	for version.Version.NewerThan(ver) {
+		after = append(after, version)
+		id++
+		if id == len(remaining) {
+			break
+		}
+		version = remaining[id]
+	}
+	slices.Reverse(after)
+	cmds := &InnovationCommands{
+		Added:   []string{},
+		Removed: []string{},
+		Updated: []string{},
+	}
+	for _, i := range after {
+		for _, cmd := range i.Commands.Added {
+			if slices.Contains(cmds.Removed, cmd) {
+				// remove from "removed" and add to "added"
+				id = slices.Index(cmds.Removed, cmd)
+				slices.Replace(cmds.Removed, id, id+1)
+				cmds.Updated = append(cmds.Updated, cmd)
+			} else {
+				cmds.Added = append(cmds.Added, cmd)
+			}
+		}
+		for _, cmd := range i.Commands.Updated {
+			if slices.Contains(cmds.Removed, cmd) {
+				// remove from "removed" and add to "added"
+				id = slices.Index(cmds.Removed, cmd)
+				slices.Replace(cmds.Removed, id, id+1)
+				cmds.Added = append(cmds.Added, cmd)
+			} else if slices.Contains(cmds.Added, cmd) {
+				// do nothing
+			} else {
+				cmds.Updated = append(cmds.Updated, cmd)
+			}
+		}
+		for _, cmd := range i.Commands.Removed {
+			if slices.Contains(cmds.Added, cmd) {
+				// remove from "added"
+				id = slices.Index(cmds.Added, cmd)
+				slices.Replace(cmds.Added, id, id+1)
+			} else if slices.Contains(cmds.Updated, cmd) {
+				// remove from "updated" and add to "removed"
+				id = slices.Index(cmds.Updated, cmd)
+				slices.Replace(cmds.Updated, id, id+1)
+				cmds.Removed = append(cmds.Removed, cmd)
+			} else {
+				cmds.Removed = append(cmds.Removed, cmd)
+			}
+		}
+	}
+	return cmds
+}
 
 func getLatestInnovation(in []*Innovation) (*Innovation, int) {
 	var lat *Innovation
