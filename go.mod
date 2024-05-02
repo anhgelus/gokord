@@ -1,13 +1,13 @@
 module github.com/anhgelus/gokord
 
-go 1.21
+go 1.22
 
 require (
 	github.com/bwmarrin/discordgo v0.28.1
-	github.com/pelletier/go-toml/v2 v2.2.1
+	github.com/pelletier/go-toml/v2 v2.2.2
 	github.com/redis/go-redis/v9 v9.5.1
 	gorm.io/driver/postgres v1.5.7
-	gorm.io/gorm v1.25.9
+	gorm.io/gorm v1.25.10
 )
 
 require (
