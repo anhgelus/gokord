@@ -35,16 +35,28 @@ func LoadInnovationFromJson(b []byte) ([]*Innovation, error) {
 }
 
 func GetCommandsUpdate(bot *Bot) *InnovationCommands {
-	lat, id := getLatestInnovation(bot.Innovations)
+	remaining := bot.Innovations
+	slices.SortFunc(remaining, func(a, b *Innovation) int {
+		return a.Version.ForSort(b.Version)
+	})
+	slices.Reverse(remaining)
+	l := len(remaining)
+	if l == 0 {
+		utils.SendSuccess("No updates available")
+		return &InnovationCommands{}
+	}
+	lat := remaining[0]
 	if lat == nil {
 		return nil
 	}
+	// loading bot data
 	botData := BotData{Name: bot.Name}
 	err := botData.Load()
 	if err != nil {
 		utils.SendAlert("version.go - Loading bot data for commands update", err.Error(), "name", bot.Name)
 		return nil
 	}
+	// parse version of the bot
 	ver, err := ParseVersion(botData.Version)
 	if err != nil {
 		utils.SendAlert(
@@ -55,25 +67,24 @@ func GetCommandsUpdate(bot *Bot) *InnovationCommands {
 		)
 		return nil
 	}
-	// if there is no update
+	// if there is no update to do
 	if lat.Version.Is(ver) {
+		utils.SendSuccess("No updates available")
 		return &InnovationCommands{}
 	} else if !lat.Version.NewerThan(ver) {
 		utils.SendWarn(
-			"Bot has a newer version than the latest version in Innovation",
+			"Bot has a newer version than the latest version available",
 			"bot_version",
 			botData.Version,
 			"innovation_version",
 			lat.Version,
 		)
+		return &InnovationCommands{}
 	}
+	// get available versions
 	var after []*Innovation
-	remaining := bot.Innovations
-	slices.SortFunc(remaining, func(a, b *Innovation) int {
-		return a.Version.ForSort(b.Version)
-	})
-	slices.Reverse(remaining)
 	version := lat
+	id := 0
 	for version.Version.NewerThan(ver) {
 		after = append(after, version)
 		id++
@@ -82,6 +93,7 @@ func GetCommandsUpdate(bot *Bot) *InnovationCommands {
 		}
 		version = remaining[id]
 	}
+	// generate innovation commands
 	slices.Reverse(after)
 	cmds := &InnovationCommands{
 		Added:   []string{},
@@ -91,7 +103,7 @@ func GetCommandsUpdate(bot *Bot) *InnovationCommands {
 	for _, i := range after {
 		for _, cmd := range i.Commands.Added {
 			if slices.Contains(cmds.Removed, cmd) {
-				// remove from "removed" and add to "added"
+				// remove from "removed" and add to "updated"
 				id = slices.Index(cmds.Removed, cmd)
 				slices.Replace(cmds.Removed, id, id+1)
 				cmds.Updated = append(cmds.Updated, cmd)
@@ -129,24 +141,11 @@ func GetCommandsUpdate(bot *Bot) *InnovationCommands {
 	return cmds
 }
 
-func getLatestInnovation(in []*Innovation) (*Innovation, int) {
-	var lat *Innovation
-	var id int
-	for k := range len(in) {
-		c := in[k]
-		if k == 0 {
-			lat = c
-			id = k
-		}
-		if !lat.Version.NewerThan(c.Version) {
-			lat = c
-			id = k
-		}
-	}
-	return lat, id
-}
-
 func ParseVersion(s string) (*Version, error) {
+	// if given version string is empty
+	if len(s) == 0 {
+		return &Version{Major: 0, Minor: 0, Patch: 0}, nil
+	}
 	sp := strings.Split(s, ".")
 	ma, err := strconv.Atoi(sp[0])
 	if err != nil {
