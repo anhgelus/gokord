@@ -70,13 +70,7 @@ func GetCommandsUpdate(bot *Bot) *InnovationCommands {
 	var after []*Innovation
 	remaining := bot.Innovations
 	slices.SortFunc(remaining, func(a, b *Innovation) int {
-		if a.Version.Is(b.Version) {
-			return 0
-		} else if a.Version.NewerThan(b.Version) {
-			return 1
-		} else {
-			return -1
-		}
+		return a.Version.ForSort(b.Version)
 	})
 	slices.Reverse(remaining)
 	version := lat
@@ -241,4 +235,18 @@ func (v *Version) NewerThan(o *Version) bool {
 // Is check if this is the same version
 func (v *Version) Is(o *Version) bool {
 	return v.Major == o.Major && v.Minor == o.Minor && v.Patch == o.Patch && v.PreRelease == o.PreRelease
+}
+
+// ForSort returns:
+//   - 0 if o and v are the same version
+//   - 1 if v is newer than o
+//   - -1 if o is newer than v
+func (v *Version) ForSort(o *Version) int {
+	if v.Is(o) {
+		return 0
+	} else if v.NewerThan(o) {
+		return 1
+	} else {
+		return -1
+	}
 }
