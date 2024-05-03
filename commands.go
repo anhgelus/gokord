@@ -250,9 +250,8 @@ func (c *GCommandChoice) ToDiscordChoice() *discordgo.ApplicationCommandOptionCh
 	}
 }
 
-// updateCommands of the Bot ;
-// force forces the registration of already registered commands
-func (b *Bot) updateCommands(client *discordgo.Session, force bool) {
+// updateCommands of the Bot
+func (b *Bot) updateCommands(client *discordgo.Session) {
 	// add ping command
 	b.Commands = append(
 		b.Commands,
@@ -265,36 +264,33 @@ func (b *Bot) updateCommands(client *discordgo.Session, force bool) {
 		utils.SendAlert("commands.go - Fetching slash commands", err.Error())
 		return
 	}
-	var toSkip []*discordgo.ApplicationCommand
-	for _, c := range cmdRegistered {
-		valid := false
-		for _, bc := range b.Commands {
-			if bc.Name == c.Name {
-				// do not delete command
-				valid = true
-				if bc.Is(c) && !force {
-					// add command to skip
-					toSkip = append(toSkip, c)
-				}
-			}
+	update := GetCommandsUpdate(b)
+	if update != nil {
+		utils.SendAlert("commands.go - Checking the update", "update is nil, check the log")
+		return
+	}
+	for _, d := range update.Removed {
+		id := slices.IndexFunc(cmdRegistered, func(e *discordgo.ApplicationCommand) bool {
+			return d == e.Name
+		})
+		if id == -1 {
+			utils.SendWarn("Command not registered cannot be deleted", "name", d)
+			continue
 		}
-		if !valid {
-			err = client.ApplicationCommandDelete(appID, "", c.ApplicationID)
-			if err != nil {
-				utils.SendAlert(
-					"commands.go - Deleting slash command",
-					err.Error(),
-					"name",
-					c.Name,
-					"id",
-					c.ApplicationID,
-				)
-			}
+		c := cmdRegistered[id]
+		err = client.ApplicationCommandDelete(appID, "", cmdRegistered[id].ApplicationID)
+		if err != nil {
+			utils.SendAlert(
+				"commands.go - Deleting slash command",
+				err.Error(),
+				"name",
+				c.Name,
+				"id",
+				c.ApplicationID,
+			)
 		}
 	}
 	// registering commands
-	registeredCommands = make([]*discordgo.ApplicationCommand, len(b.Commands))
-	o := 0
 	guildID := ""
 	if Debug {
 		gs, err := client.UserGuilds(1, "", "", false)
@@ -305,32 +301,29 @@ func (b *Bot) updateCommands(client *discordgo.Session, force bool) {
 			guildID = gs[0].ID
 		}
 	}
-	for i, v := range b.Commands {
-		var cmd *discordgo.ApplicationCommand
-		in := slices.IndexFunc(toSkip, func(c *discordgo.ApplicationCommand) bool {
-			return v.Name == c.Name
+	var registeredCommands []*discordgo.ApplicationCommand
+	o := 0
+	for _, c := range append(update.Updated, update.Added...) {
+		id := slices.IndexFunc(b.Commands, func(e *GeneralCommand) bool {
+			return c == e.Name
 		})
-		// if command is already registered, skip
-		if in != -1 {
-			utils.SendDebug("Skip command", "name", v.Name)
-			cmd = toSkip[in]
-		} else {
-			cmd, err = client.ApplicationCommandCreate(client.State.User.ID, guildID, v.ToCmd().ApplicationCommand)
-			if err != nil {
-				utils.SendAlert("commands.go - Create application command", err.Error())
-				continue
-			}
+		v := b.Commands[id]
+		cmd, err := client.ApplicationCommandCreate(client.State.User.ID, guildID, v.ToCmd().ApplicationCommand)
+		if err != nil {
+			utils.SendAlert("commands.go - Create application command", err.Error(), "name", c)
+			continue
 		}
-		registeredCommands[i] = cmd
-		utils.SendSuccess(fmt.Sprintf("Command %s initialized", v.Name))
+		registeredCommands = append(registeredCommands, cmd)
+		utils.SendSuccess(fmt.Sprintf("Command %s initialized", c))
 		o += 1
 	}
-	l := len(b.Commands)
+	l := len(registeredCommands)
 	if l != o {
-		utils.SendWarn(fmt.Sprintf("%d/%d commands has been loaded", o, l))
+		utils.SendWarn(fmt.Sprintf("%d/%d commands has been created or updated", o, l))
 	} else {
-		utils.SendSuccess(fmt.Sprintf("%d/%d commands has been loaded", o, l))
+		utils.SendSuccess(fmt.Sprintf("%d/%d commands has been created or updated", o, l))
 	}
+	b.Version.UpdateBotVersion(b)
 }
 
 // setupCommandsHandlers of the Bot

@@ -35,7 +35,10 @@ type Bot struct {
 	Status   []*Status         // Status of the Bot
 	Commands []*GeneralCommand // Commands of the Bot, use NewCommand to create easily a new command
 	//Handlers []interface{} // Handlers of the Bot
-	AfterInit func(s *discordgo.Session) // AfterInit is called after the initialization process of the Bot
+	AfterInit   func(s *discordgo.Session) // AfterInit is called after the initialization process of the Bot
+	Version     *Version
+	Innovations []*Innovation
+	Name        string
 }
 
 // Status contains all required information for updating the status
@@ -46,7 +49,7 @@ type Status struct {
 }
 
 // Start the Bot (blocking instruction)
-func (b *Bot) Start(forceCmdRegistration bool) {
+func (b *Bot) Start() {
 	dg, err := discordgo.New("Bot " + b.Token) // New connection to the discord API with bot token
 	if err != nil {
 		utils.SendAlert("bot.go - Token", err.Error())
@@ -64,7 +67,7 @@ func (b *Bot) Start(forceCmdRegistration bool) {
 	// register commands
 	wg.Add(1)
 	go func() {
-		b.updateCommands(dg, forceCmdRegistration)
+		b.updateCommands(dg)
 		utils.SendSuccess("Commands updated")
 		wg.Done()
 	}()

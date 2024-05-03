@@ -15,6 +15,20 @@ type DataBase interface {
 	Save() error // Save data into the database
 }
 
+type BotData struct {
+	gorm.Model
+	Version string `gorm:"version"`
+	Name    string `gorm:"name"`
+}
+
+func (b *BotData) Load() error {
+	return DB.FirstOrCreate(b).Error
+}
+
+func (b *BotData) Save() error {
+	return DB.Save(b).Error
+}
+
 // Connect to the postgres database using the given config.DatabaseCredentials
 func (dc *DatabaseCredentials) Connect() (*gorm.DB, error) {
 	db, err := gorm.Open(postgres.Open(dc.generateDsn()), &gorm.Config{})
