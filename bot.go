@@ -123,6 +123,8 @@ func (b *Bot) Start() {
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
 
+	utils.SendSuccess("Bot shutting down")
+
 	if Debug {
 		utils.SendDebug("Unregistering local commands")
 		b.unregisterGuildCommands(dg)
@@ -132,4 +134,6 @@ func (b *Bot) Start() {
 	if err != nil {
 		utils.SendAlert("bot.go - Shutdown", err.Error())
 	}
+
+	utils.SendSuccess("Bot shut down")
 }
