@@ -17,8 +17,9 @@ var (
 	// BaseCfg is the BaseConfig used by the bot
 	BaseCfg BaseConfig
 
-	ErrImpossibleToConnectDB    = errors.New("impossible to connect to the database")
-	ErrImpossibleToConnectRedis = errors.New("impossible to connect to redis")
+	ErrImpossibleToConnectDB         = errors.New("impossible to connect to the database")
+	ErrImpossibleToConnectRedis      = errors.New("impossible to connect to redis")
+	ErrMigratingGokordInternalModels = errors.New("error while migrating internal models")
 )
 
 const (
@@ -105,6 +106,12 @@ func SetupConfigs(cfgInfo []*ConfigInfo) error {
 	if err != nil {
 		utils.SendAlert("config.go - connection to database", err.Error())
 		return ErrImpossibleToConnectDB
+	}
+
+	err = DB.AutoMigrate(&BotData{})
+	if err != nil {
+		utils.SendAlert("config.go - migrating internal models", err.Error())
+		return ErrMigratingGokordInternalModels
 	}
 
 	c, err := BaseCfg.Redis.Get()
