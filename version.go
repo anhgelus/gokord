@@ -61,7 +61,6 @@ func GetCommandsUpdate(bot *Bot) *InnovationCommands {
 		return a.Version.ForSort(b.Version)
 	})
 	slices.Reverse(remaining)
-	utils.SendDebug("list of innovations", "innovations", remaining)
 	l := len(remaining)
 	if l == 0 {
 		utils.SendSuccess("No updates available")
@@ -90,7 +89,7 @@ func GetCommandsUpdate(bot *Bot) *InnovationCommands {
 		return nil
 	}
 	// if there is no update to do
-	utils.SendDebug("last version and version of bot", "last", lat, "version of bot", ver)
+	utils.SendDebug("last version and version of bot", "last", lat, "version of bot", ver.String())
 	if !ver.Is(&NilVersion) {
 		if lat.Version.Is(&ver) {
 			utils.SendSuccess("No updates available")
