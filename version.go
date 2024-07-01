@@ -16,9 +16,14 @@ type Version struct {
 	PreRelease string
 }
 
-type Innovation struct {
-	Version  *Version            `json:"version"`
+type InnovationJson struct {
+	Version  string              `json:"version"`
 	Commands *InnovationCommands `json:"commands"`
+}
+
+type Innovation struct {
+	Version  *Version
+	Commands *InnovationCommands
 }
 
 type InnovationCommands struct {
@@ -27,11 +32,27 @@ type InnovationCommands struct {
 	Updated []string `json:"updated"`
 }
 
+var NilVersion = Version{Major: 0, Minor: 0, Patch: 0}
+
 // LoadInnovationFromJson provided (could be embedded with go/embed)
 func LoadInnovationFromJson(b []byte) ([]*Innovation, error) {
 	var i []*Innovation
-	err := json.Unmarshal(b, &i)
-	return i, err
+	var j []*InnovationJson
+	err := json.Unmarshal(b, &j)
+	if err != nil {
+		return nil, err
+	}
+	for _, item := range j {
+		v, err := ParseVersion(item.Version)
+		if err != nil {
+			return nil, err
+		}
+		i = append(i, &Innovation{
+			Version:  &v,
+			Commands: item.Commands,
+		})
+	}
+	return i, nil
 }
 
 func GetCommandsUpdate(bot *Bot) *InnovationCommands {
@@ -40,13 +61,14 @@ func GetCommandsUpdate(bot *Bot) *InnovationCommands {
 		return a.Version.ForSort(b.Version)
 	})
 	slices.Reverse(remaining)
+	utils.SendDebug("list of innovations", "innovations", remaining)
 	l := len(remaining)
 	if l == 0 {
 		utils.SendSuccess("No updates available")
 		return &InnovationCommands{}
 	}
 	lat := remaining[0]
-	if lat == nil {
+	if lat == nil || lat.Version == nil {
 		return nil
 	}
 	// loading bot data
@@ -69,18 +91,20 @@ func GetCommandsUpdate(bot *Bot) *InnovationCommands {
 	}
 	// if there is no update to do
 	utils.SendDebug("last version and version of bot", "last", lat, "version of bot", ver)
-	if lat.Version.Is(&ver) {
-		utils.SendSuccess("No updates available")
-		return &InnovationCommands{}
-	} else if !lat.Version.NewerThan(&ver) {
-		utils.SendWarn(
-			"Bot has a newer version than the latest version available",
-			"bot_version",
-			botData.Version,
-			"innovation_version",
-			lat.Version,
-		)
-		return &InnovationCommands{}
+	if !ver.Is(&NilVersion) {
+		if lat.Version.Is(&ver) {
+			utils.SendSuccess("No updates available")
+			return &InnovationCommands{}
+		} else if !lat.Version.NewerThan(&ver) {
+			utils.SendWarn(
+				"Bot has a newer version than the latest version available",
+				"bot_version",
+				botData.Version,
+				"innovation_version",
+				lat.Version,
+			)
+			return &InnovationCommands{}
+		}
 	}
 	// get available versions
 	var after []*Innovation
