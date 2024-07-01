@@ -265,7 +265,7 @@ func (b *Bot) updateCommands(client *discordgo.Session) {
 		return
 	}
 	update := GetCommandsUpdate(b)
-	if update != nil {
+	if update == nil {
 		utils.SendAlert("commands.go - Checking the update", "update is nil, check the log")
 		return
 	}
