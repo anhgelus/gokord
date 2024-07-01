@@ -68,10 +68,10 @@ func GetCommandsUpdate(bot *Bot) *InnovationCommands {
 		return nil
 	}
 	// if there is no update to do
-	if lat.Version.Is(ver) {
+	if lat.Version.Is(&ver) {
 		utils.SendSuccess("No updates available")
 		return &InnovationCommands{}
-	} else if !lat.Version.NewerThan(ver) {
+	} else if !lat.Version.NewerThan(&ver) {
 		utils.SendWarn(
 			"Bot has a newer version than the latest version available",
 			"bot_version",
@@ -85,7 +85,7 @@ func GetCommandsUpdate(bot *Bot) *InnovationCommands {
 	var after []*Innovation
 	version := lat
 	id := 0
-	for version.Version.NewerThan(ver) {
+	for version.Version.NewerThan(&ver) {
 		after = append(after, version)
 		id++
 		if id == len(remaining) {
@@ -141,30 +141,30 @@ func GetCommandsUpdate(bot *Bot) *InnovationCommands {
 	return cmds
 }
 
-func ParseVersion(s string) (*Version, error) {
+func ParseVersion(s string) (Version, error) {
 	// if given version string is empty
 	if len(s) == 0 {
-		return &Version{Major: 0, Minor: 0, Patch: 0}, nil
+		return Version{Major: 0, Minor: 0, Patch: 0}, nil
 	}
 	sp := strings.Split(s, ".")
 	ma, err := strconv.Atoi(sp[0])
 	if err != nil {
-		return nil, err
+		return Version{}, err
 	}
 	mi, err := strconv.Atoi(sp[1])
 	if err != nil {
-		return nil, err
+		return Version{}, err
 	}
 	pa, err := strconv.Atoi(sp[2])
 	if err != nil {
-		return nil, err
+		return Version{}, err
 	}
 	spl := strings.Split(s, "-")
 	var pre string
 	if len(spl) > 2 {
 		pre = strings.Join(spl[1:], "-")
 	}
-	return &Version{
+	return Version{
 		Major:      uint(ma),
 		Minor:      uint(mi),
 		Patch:      uint(pa),
