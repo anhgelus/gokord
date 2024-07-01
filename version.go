@@ -171,7 +171,12 @@ func ParseVersion(s string) (Version, error) {
 	if len(s) == 0 {
 		return Version{Major: 0, Minor: 0, Patch: 0}, nil
 	}
-	sp := strings.Split(s, ".")
+	spl := strings.Split(s, "-")
+	var pre string
+	if len(spl) >= 2 {
+		pre = strings.Join(spl[1:], "-")
+	}
+	sp := strings.Split(spl[0], ".")
 	ma, err := strconv.Atoi(sp[0])
 	if err != nil {
 		return Version{}, err
@@ -183,11 +188,6 @@ func ParseVersion(s string) (Version, error) {
 	pa, err := strconv.Atoi(sp[2])
 	if err != nil {
 		return Version{}, err
-	}
-	spl := strings.Split(s, "-")
-	var pre string
-	if len(spl) > 2 {
-		pre = strings.Join(spl[1:], "-")
 	}
 	return Version{
 		Major:      uint(ma),
