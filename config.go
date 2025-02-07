@@ -147,6 +147,8 @@ func SetupConfigs(customBaseConfig BaseConfig, cfgInfo []*ConfigInfo) error {
 	var err error
 	if customBaseConfig != nil {
 		BaseCfg = customBaseConfig
+	} else {
+		BaseCfg = &SimpleConfig{}
 	}
 	err = setupBaseConfig()
 	if err != nil {
