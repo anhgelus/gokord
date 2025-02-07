@@ -37,6 +37,10 @@ type BaseConfig interface {
 	GetSQLCredentials() *SQLCredentials
 	// SetDefaultValues set all values of this config to their default ones. THIS IS A DESTRUCTIVE OPERATION!
 	SetDefaultValues()
+	// Marshal the config, must use toml.Marshal
+	Marshal() ([]byte, error)
+	// Unmarshal the config, must use toml.Unmarshal
+	Unmarshal([]byte) error
 }
 
 // SimpleConfig is all basic configuration (debug, redis connection and database connection)
@@ -70,6 +74,14 @@ func (c *SimpleConfig) SetDefaultValues() {
 	c.Redis.SetDefaultValues()
 	c.Database = &SQLCredentials{}
 	c.Database.SetDefaultValues()
+}
+
+func (c *SimpleConfig) Marshal() ([]byte, error) {
+	return toml.Marshal(c)
+}
+
+func (c *SimpleConfig) Unmarshal(b []byte) error {
+	return toml.Unmarshal(b, c)
 }
 
 type RedisCredentials struct {
@@ -110,11 +122,15 @@ type ConfigInfo struct {
 }
 
 func setupBaseConfig() error {
-	return LoadConfig(&BaseCfg, "config", BaseCfg.SetDefaultValues)
+	return LoadConfig(&BaseCfg, "config", BaseCfg.SetDefaultValues, func(_ interface{}) ([]byte, error) {
+		return BaseCfg.Marshal()
+	}, func(data []byte, _ interface{}) error {
+		return BaseCfg.Unmarshal(data)
+	})
 }
 
 // LoadConfig a config (already called on start)
-func LoadConfig(cfg interface{}, name string, defaultValues func()) error {
+func LoadConfig(cfg interface{}, name string, defaultValues func(), marshal func(interface{}) ([]byte, error), unmarshal func([]byte, interface{}) error) error {
 	path := fmt.Sprintf("%s/%s.toml", ConfigFolder, name)
 	err := os.Mkdir(ConfigFolder, 0666)
 	if err != nil && !os.IsExist(err) {
@@ -127,7 +143,7 @@ func LoadConfig(cfg interface{}, name string, defaultValues func()) error {
 		}
 		utils.SendAlert("config.go - Create file", "File not found, creating a new one.")
 		defaultValues()
-		c, err = toml.Marshal(cfg)
+		c, err = marshal(cfg)
 		if err != nil {
 			return err
 		}
@@ -162,7 +178,7 @@ func SetupConfigs(customBaseConfig BaseConfig, cfgInfo []*ConfigInfo) error {
 	}
 
 	for _, cfg := range cfgInfo {
-		err = LoadConfig(cfg.Cfg, cfg.Name, cfg.DefaultValues)
+		err = LoadConfig(cfg.Cfg, cfg.Name, cfg.DefaultValues, toml.Marshal, toml.Unmarshal)
 		if err != nil {
 			return err
 		}
