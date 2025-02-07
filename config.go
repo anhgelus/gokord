@@ -153,7 +153,7 @@ func LoadConfig(cfg interface{}, name string, defaultValues func(), marshal func
 		}
 		return nil
 	}
-	return toml.Unmarshal(c, cfg)
+	return unmarshal(c, cfg)
 }
 
 // SetupConfigs with the given configs (+ base config which is available at BaseCfg)
