@@ -11,13 +11,7 @@ import (
 )
 
 var (
-	//go:embed resources/config.toml
-	DefaultBaseConfig string
-
-	//go:embed resources/config_no_redis.toml
-	DefaultBaseConfigNoRedis string
-
-	// BaseCfg is the BaseConfig used by the bot
+	// BaseCfg is the main BaseConfig used by the bot
 	BaseCfg BaseConfig
 
 	// UseRedis is true if the bot will use redis
@@ -32,12 +26,50 @@ const (
 	ConfigFolder = "config"
 )
 
-// BaseConfig is all basic configuration (debug, redis connection and database connection)
-type BaseConfig struct {
-	Debug    bool                `toml:"debug"`
-	Author   string              `toml:"author"`
-	Redis    RedisCredentials    `toml:"redis"`
-	Database DatabaseCredentials `toml:"database"`
+type BaseConfig interface {
+	// IsDebug returns true if the bot is in debug mode
+	IsDebug() bool
+	// GetAuthor returns the author (or the owner) of the bot
+	GetAuthor() string
+	// GetRedisCredentials returns the RedisCredentials used by the bot
+	GetRedisCredentials() *RedisCredentials
+	// GetSQLCredentials returns the SQLCredentials used by the bot
+	GetSQLCredentials() *SQLCredentials
+	// SetDefaultValues set all values of this config to their default ones. THIS IS A DESTRUCTIVE OPERATION!
+	SetDefaultValues()
+}
+
+// SimpleConfig is all basic configuration (debug, redis connection and database connection)
+type SimpleConfig struct {
+	Debug    bool              `toml:"debug"`
+	Author   string            `toml:"author"`
+	Redis    *RedisCredentials `toml:"redis"`
+	Database *SQLCredentials   `toml:"database"`
+}
+
+func (c *SimpleConfig) IsDebug() bool {
+	return c.Debug
+}
+
+func (c *SimpleConfig) GetAuthor() string {
+	return c.Author
+}
+
+func (c *SimpleConfig) GetRedisCredentials() *RedisCredentials {
+	return c.Redis
+}
+
+func (c *SimpleConfig) GetSQLCredentials() *SQLCredentials {
+	return c.Database
+}
+
+func (c *SimpleConfig) SetDefaultValues() {
+	c.Debug = false
+	c.Author = "anhgelus"
+	c.Redis = &RedisCredentials{}
+	c.Redis.SetDefaultValues()
+	c.Database = &SQLCredentials{}
+	c.Database.SetDefaultValues()
 }
 
 type RedisCredentials struct {
@@ -46,7 +78,14 @@ type RedisCredentials struct {
 	DB       int    `toml:"db"`
 }
 
-type DatabaseCredentials struct {
+// SetDefaultValues set all values of these credentials to their default ones. THIS IS A DESTRUCTIVE OPERATION!
+func (rc *RedisCredentials) SetDefaultValues() {
+	rc.Address = "localhost:6379"
+	rc.Password = "password"
+	rc.DB = 0
+}
+
+type SQLCredentials struct {
 	Host     string `toml:"host"`
 	User     string `toml:"user"`
 	Password string `toml:"password"`
@@ -54,20 +93,28 @@ type DatabaseCredentials struct {
 	Port     int    `toml:"port"`
 }
 
+// SetDefaultValues set all values of these credentials to their default ones. THIS IS A DESTRUCTIVE OPERATION!
+func (sc *SQLCredentials) SetDefaultValues() {
+	sc.Host = "localhost"
+	sc.User = "root"
+	sc.Password = "root"
+	sc.DBName = "bot"
+	sc.Port = 5432
+}
+
 // ConfigInfo has all required information to get a config
 type ConfigInfo struct {
-	Cfg     any    // pointer to the struct
-	Name    string // name of the config
-	Default string // default content of the config
+	Cfg           interface{} // Cfg is a pointer to the struct
+	Name          string      // Name of the config
+	DefaultValues func()      // DefaultValues is called to set up the default values of the config
 }
 
-// getBaseConfig get the BaseConfig
-func getBaseConfig(cfg any, defaultConfig string) error {
-	return Get(cfg, defaultConfig, "config")
+func setupBaseConfig() error {
+	return LoadConfig(&BaseCfg, "config", BaseCfg.SetDefaultValues)
 }
 
-// Get a config (already called on start)
-func Get(cfg any, defaultConfig string, name string) error {
+// LoadConfig a config (already called on start)
+func LoadConfig(cfg interface{}, name string, defaultValues func()) error {
 	path := fmt.Sprintf("%s/%s.toml", ConfigFolder, name)
 	err := os.Mkdir(ConfigFolder, 0666)
 	if err != nil && !os.IsExist(err) {
@@ -79,41 +126,47 @@ func Get(cfg any, defaultConfig string, name string) error {
 			return err
 		}
 		utils.SendAlert("config.go - Create file", "File not found, creating a new one.")
-		c = []byte(defaultConfig)
+		defaultValues()
+		c, err = toml.Marshal(cfg)
+		if err != nil {
+			return err
+		}
 		err = os.WriteFile(path, c, 0666)
 		if err != nil {
 			return err
 		}
+		return nil
 	}
 	return toml.Unmarshal(c, cfg)
 }
 
 // SetupConfigs with the given configs (+ base config which is available at BaseCfg)
-func SetupConfigs(cfgInfo []*ConfigInfo) error {
+//
+// customBaseConfig is the new type of BaseCfg (if you want to use SimpleConfig, you should pass nil)
+func SetupConfigs(customBaseConfig BaseConfig, cfgInfo []*ConfigInfo) error {
 	var err error
-	if UseRedis {
-		err = getBaseConfig(&BaseCfg, DefaultBaseConfig)
-	} else {
-		err = getBaseConfig(&BaseCfg, DefaultBaseConfigNoRedis)
+	if customBaseConfig != nil {
+		BaseCfg = customBaseConfig
 	}
+	err = setupBaseConfig()
 	if err != nil {
 		return err
 	}
 
-	Debug = BaseCfg.Debug
-	utils.Author = BaseCfg.Author
+	Debug = BaseCfg.IsDebug()
+	utils.Author = BaseCfg.GetAuthor()
 	if Debug {
 		slog.SetLogLoggerLevel(slog.LevelDebug)
 	}
 
 	for _, cfg := range cfgInfo {
-		err = Get(cfg.Cfg, cfg.Name, cfg.Default)
+		err = LoadConfig(cfg.Cfg, cfg.Name, cfg.DefaultValues)
 		if err != nil {
 			return err
 		}
 	}
 
-	DB, err = BaseCfg.Database.Connect()
+	DB, err = BaseCfg.GetSQLCredentials().Connect()
 	if err != nil {
 		utils.SendAlert("config.go - connection to database", err.Error())
 		return ErrImpossibleToConnectDB
@@ -128,7 +181,7 @@ func SetupConfigs(cfgInfo []*ConfigInfo) error {
 	if !UseRedis {
 		return nil
 	}
-	c, err := BaseCfg.Redis.Get()
+	c, err := BaseCfg.GetRedisCredentials().Connect()
 	if err != nil {
 		utils.SendAlert("config.go - connection to redis", err.Error())
 		return ErrImpossibleToConnectRedis

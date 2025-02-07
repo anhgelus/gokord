@@ -34,8 +34,8 @@ func (p *RedisUser) GenKey(key string) string {
 	return fmt.Sprintf("%s:%s:%s", p.GuildID, p.DiscordID, key)
 }
 
-// Get the redis.Client with the given RedisCredentials
-func (rc *RedisCredentials) Get() (*redis.Client, error) {
+// Connect to Redis with the given RedisCredentials
+func (rc *RedisCredentials) Connect() (*redis.Client, error) {
 	client := redis.NewClient(&redis.Options{
 		Addr:     rc.Address,
 		Password: rc.Password,

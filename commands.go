@@ -255,7 +255,7 @@ func (b *Bot) updateCommands(client *discordgo.Session) {
 	// add ping command
 	b.Commands = append(
 		b.Commands,
-		NewCommand("ping", "Get the ping of the bot").SetHandler(commands.Ping),
+		NewCommand("ping", "Connect the ping of the bot").SetHandler(commands.Ping),
 	)
 	// removing old commands and skipping already registered commands
 	appID := client.State.Application.ID

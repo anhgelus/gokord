@@ -1,9 +1,0 @@
-debug = false
-author = "anhgelus"
-
-[database]
-host = "localhost"
-user = ""
-password = ""
-db_name = ""
-port = 5432
