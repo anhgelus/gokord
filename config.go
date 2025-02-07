@@ -14,8 +14,14 @@ var (
 	//go:embed resources/config.toml
 	DefaultBaseConfig string
 
+	//go:embed resources/config_no_redis.toml
+	DefaultBaseConfigNoRedis string
+
 	// BaseCfg is the BaseConfig used by the bot
 	BaseCfg BaseConfig
+
+	// UseRedis is true if the bot will use redis
+	UseRedis = true
 
 	ErrImpossibleToConnectDB         = errors.New("impossible to connect to the database")
 	ErrImpossibleToConnectRedis      = errors.New("impossible to connect to redis")
@@ -84,7 +90,12 @@ func Get(cfg any, defaultConfig string, name string) error {
 
 // SetupConfigs with the given configs (+ base config which is available at BaseCfg)
 func SetupConfigs(cfgInfo []*ConfigInfo) error {
-	err := getBaseConfig(&BaseCfg, DefaultBaseConfig)
+	var err error
+	if UseRedis {
+		err = getBaseConfig(&BaseCfg, DefaultBaseConfig)
+	} else {
+		err = getBaseConfig(&BaseCfg, DefaultBaseConfigNoRedis)
+	}
 	if err != nil {
 		return err
 	}
@@ -114,6 +125,9 @@ func SetupConfigs(cfgInfo []*ConfigInfo) error {
 		return ErrMigratingGokordInternalModels
 	}
 
+	if !UseRedis {
+		return nil
+	}
 	c, err := BaseCfg.Redis.Get()
 	if err != nil {
 		utils.SendAlert("config.go - connection to redis", err.Error())
