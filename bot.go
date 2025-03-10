@@ -90,7 +90,7 @@ func (b *Bot) Start() {
 		time.Sleep(time.Duration(to-delta) * time.Second)
 	}
 	utils.SendSuccess(fmt.Sprintf("Bot started as %s", dg.State.User.Username))
-	utils.NewTimer(30*time.Second, func(stop chan struct{}) {
+	utils.NewTimer(30*time.Second, func(stop chan<- interface{}) {
 		if b.Status == nil {
 			stop <- struct{}{}
 			return
