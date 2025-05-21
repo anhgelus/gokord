@@ -71,6 +71,7 @@ func (res *ResponseBuilder) NotEphemeral() *ResponseBuilder {
 }
 
 func (res *ResponseBuilder) IsDeferred() *ResponseBuilder {
+	res.NotEdit()
 	res.deferred = true
 	return res
 }
@@ -81,6 +82,7 @@ func (res *ResponseBuilder) NotDeferred() *ResponseBuilder {
 }
 
 func (res *ResponseBuilder) IsEdit() *ResponseBuilder {
+	res.NotDeferred()
 	res.edit = true
 	return res
 }
