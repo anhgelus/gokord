@@ -33,9 +33,9 @@ const (
 
 // Bot is the representation of a discord bot
 type Bot struct {
-	Token    string            // Token of the Bot
-	Status   []*Status         // Status of the Bot
-	Commands []*CommandCreator // Commands of the Bot, use NewCommand to create easily a new command
+	Token    string           // Token of the Bot
+	Status   []*Status        // Status of the Bot
+	Commands []CommandBuilder // Commands of the Bot, use NewCommand to create easily a new command
 	//Handlers []interface{} // Handlers of the Bot
 	AfterInit   func(s *discordgo.Session) // AfterInit is called after the initialization process of the Bot
 	Version     *Version

@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// TrimMessage trims a "s" string and remove bad chars, links and pings
+// TrimMessage trims an "s" string and removes bad chars, links and pings
 func TrimMessage(s string) string {
 	var not, ping, link *regexp.Regexp
 	var err error

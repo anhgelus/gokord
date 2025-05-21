@@ -33,13 +33,14 @@ func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreat
 		}
 		return
 	}
-	var cmd *Cmd
-	for _, c := range b.Commands {
-		if c.Name == data.Name {
-			cmd = c.ToCmd()
+	var c *cmd
+	for _, cb := range b.Commands {
+		cr := cb.toCreator()
+		if cr.Name == data.Name {
+			c = cr.ToCmd()
 		}
 	}
-	if cmd == nil {
+	if c == nil {
 		utils.SendWarn("cmd == nil", "name", data.Name)
 		err := resp.IsEphemeral().Message("Command not found").Send()
 		if err != nil {
@@ -48,7 +49,7 @@ func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreat
 		}
 		return
 	}
-	if cmd.Subs == nil {
+	if c.Subs == nil {
 		utils.SendAlert("commands_handler.go - Checking subs", ErrSubsAreNil.Error())
 		err := resp.IsEphemeral().Message("Internal error, please report it").Send()
 		if err != nil {
@@ -56,7 +57,7 @@ func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreat
 			return
 		}
 	}
-	for _, sub := range cmd.Subs {
+	for _, sub := range c.Subs {
 		if subInfo.Name == sub.Name {
 			sub.Handler(s, i)
 			return

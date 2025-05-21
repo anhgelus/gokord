@@ -14,7 +14,7 @@ func (b *Bot) updateCommands(s *discordgo.Session) {
 	// add ping command
 	b.Commands = append(
 		b.Commands,
-		NewCommand("ping", "Connect the ping of the bot").SetHandler(commands.Ping),
+		NewCommand("ping", "Get the ping of the bot").SetHandler(commands.Ping),
 	)
 
 	update := b.getCommandsUpdate()
@@ -71,7 +71,7 @@ func (b *Bot) removeCommands(s *discordgo.Session, update *InnovationCommands) {
 
 // registerCommands creates commands of InnovationCommands.Added and updates commands of InnovationCommands.Added
 func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands) {
-	var toUpdate []*CommandCreator
+	var toUpdate []CommandBuilder
 	guildID := ""
 
 	// set toUpdate and guildID
@@ -87,8 +87,8 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 		toUpdate = b.Commands
 	} else {
 		for _, c := range append(update.Updated, update.Added...) {
-			id := slices.IndexFunc(b.Commands, func(e *CommandCreator) bool {
-				return c == e.Name
+			id := slices.IndexFunc(b.Commands, func(e CommandBuilder) bool {
+				return c == e.toCreator().Name
 			})
 			if id == -1 {
 				utils.SendWarn("Impossible to find command", "name", c)
@@ -101,14 +101,14 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 	// update everything needed
 	appID := s.State.User.ID
 	o := 0
-	for _, c := range toUpdate {
-		cmd, err := s.ApplicationCommandCreate(appID, guildID, c.ToCmd().ApplicationCommand)
+	for _, cb := range toUpdate {
+		c, err := s.ApplicationCommandCreate(appID, guildID, cb.toCreator().ToCmd().ApplicationCommand)
 		if err != nil {
-			utils.SendAlert("bot.go - Create guild application command", err.Error(), "name", c)
+			utils.SendAlert("bot.go - Create guild application command", err.Error(), "name", cb)
 			continue
 		}
-		registeredCommands = append(registeredCommands, cmd)
-		utils.SendSuccess(fmt.Sprintf("Command %s initialized", c))
+		registeredCommands = append(registeredCommands, c)
+		utils.SendSuccess(fmt.Sprintf("Command %s initialized", cb))
 		o += 1
 	}
 	l := len(toUpdate)
@@ -123,7 +123,8 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 // setupCommandsHandlers of the Bot
 func (b *Bot) setupCommandsHandlers(s *discordgo.Session) {
 	if len(cmdMap) == 0 {
-		for _, c := range b.Commands {
+		for _, cb := range b.Commands {
+			c := cb.toCreator()
 			utils.SendDebug("Setup handler", "command", c.Name)
 			if c.Subs != nil {
 				utils.SendDebug("Using general handler", "command", c.Name)

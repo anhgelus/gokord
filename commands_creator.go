@@ -4,51 +4,51 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// Cmd is a discordgo.ApplicationCommand + its handler
+// cmd is a discordgo.ApplicationCommand + its handler
 //
 // Use AdminPermission to set the admin permission
-type Cmd struct {
+type cmd struct {
 	*discordgo.ApplicationCommand
 	Handler func(s *discordgo.Session, i *discordgo.InteractionCreate) // Handler called
-	Subs    []*SimpleSubCmd
+	Subs    []*simpleSubCmd
 }
 
-// SubCmd is for the internal use of the API
-type SubCmd struct {
+// subCmd is for the internal use of the API
+type subCmd struct {
 	*discordgo.ApplicationCommandOption
 	Handler func(s *discordgo.Session, i *discordgo.InteractionCreate) // Handler called
 }
 
-// SimpleSubCmd is for the internal use of the API
-type SimpleSubCmd struct {
+// simpleSubCmd is for the internal use of the API
+type simpleSubCmd struct {
 	Name    string
 	Handler func(s *discordgo.Session, i *discordgo.InteractionCreate) // Handler called
 }
 
-// CommandCreator represents a generic command
-type CommandCreator struct {
+// commandCreator represents a generic command
+type commandCreator struct {
 	HasSub      bool
 	IsSub       bool
 	Name        string
 	Permission  *int64
 	CanDM       bool
 	Description string
-	Options     []*CommandOptionCreator
-	Subs        []*CommandCreator
+	Options     []*commandOptionCreator
+	Subs        []*commandCreator
 	Handler     func(s *discordgo.Session, i *discordgo.InteractionCreate) // Handler called
 }
 
-// CommandOptionCreator represents a generic option of CommandCreator
-type CommandOptionCreator struct {
+// commandOptionCreator represents a generic option of commandCreator
+type commandOptionCreator struct {
 	Type        discordgo.ApplicationCommandOptionType
 	Name        string
 	Description string
 	Required    bool
-	Choices     []*CommandChoiceCreator
+	Choices     []*commandChoiceCreator
 }
 
-// CommandChoiceCreator represents a generic choice of CommandOptionCreator
-type CommandChoiceCreator struct {
+// commandChoiceCreator represents a generic choice of commandOptionCreator
+type commandChoiceCreator struct {
 	Name  string
 	Value interface{}
 }
@@ -57,84 +57,71 @@ var (
 	cmdMap = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){}
 )
 
-// ToSimple turns SubCmd into a SimpleSubCmd
-func (s *SubCmd) ToSimple() *SimpleSubCmd {
-	return &SimpleSubCmd{
+// ToSimple turns subCmd into a simpleSubCmd
+func (s *subCmd) ToSimple() *simpleSubCmd {
+	return &simpleSubCmd{
 		Name:    s.Name,
 		Handler: s.Handler,
 	}
 }
 
-// NewCommand creates a CommandCreator
-func NewCommand(name string, description string) *CommandCreator {
-	return &CommandCreator{
-		HasSub:      false,
-		IsSub:       false,
-		Name:        name,
-		CanDM:       false,
-		Description: description,
-		Options:     []*CommandOptionCreator{},
-		Subs:        []*CommandCreator{},
-	}
-}
-
-// SetHandler of the CommandCreator (if CommandCreator contains subcommand, it will never be called)
-func (c *CommandCreator) SetHandler(handler func(s *discordgo.Session, i *discordgo.InteractionCreate)) *CommandCreator {
+// SetHandler of the commandCreator (if commandCreator contains subcommand, it will never be called)
+func (c *commandCreator) SetHandler(handler func(s *discordgo.Session, i *discordgo.InteractionCreate)) *commandCreator {
 	c.Handler = handler
 	return c
 }
 
-// ContainsSub makes the CommandCreator able to contain subcommands
-func (c *CommandCreator) ContainsSub() *CommandCreator {
+// ContainsSub makes the commandCreator able to contain subcommands
+func (c *commandCreator) ContainsSub() *commandCreator {
 	c.HasSub = true
 	c.Options = nil
 	return c
 }
 
-// AddSub to the CommandCreator (also call ContainsSub)
-func (c *CommandCreator) AddSub(s *CommandCreator) *CommandCreator {
+// AddSub to the commandCreator (also call ContainsSub)
+func (c *commandCreator) AddSub(s *commandCreator) *commandCreator {
 	c.ContainsSub()
 	s.IsSub = true
 	c.Subs = append(c.Subs, s)
 	return c
 }
 
-// HasOption makes the CommandCreator able to contain CommandOptionCreator
-func (c *CommandCreator) HasOption() *CommandCreator {
+// HasOption makes the commandCreator able to contain commandOptionCreator
+func (c *commandCreator) HasOption() *commandCreator {
 	c.HasSub = false
 	c.Subs = nil
 	return c
 }
 
-// AddOption to the CommandCreator (also call HasOption)
-func (c *CommandCreator) AddOption(s *CommandOptionCreator) *CommandCreator {
+// AddOption to the commandCreator (also call HasOption)
+func (c *commandCreator) AddOption(s *commandOptionCreator) *commandCreator {
 	c.HasOption()
 	c.Options = append(c.Options, s)
 	return c
 }
 
-// DM makes the CommandCreator used in DM
-func (c *CommandCreator) DM() *CommandCreator {
+// DM makes the commandCreator used in DM
+func (c *commandCreator) DM() *commandCreator {
 	c.CanDM = true
 	return c
 }
 
-// SetPermission of the CommandCreator
-func (c *CommandCreator) SetPermission(p *int64) *CommandCreator {
+// SetPermission of the commandCreator
+func (c *commandCreator) SetPermission(p *int64) *commandCreator {
 	c.Permission = p
 	return c
 }
 
-// Is returns true if the CommandCreator is approximately the same as *discordgo.ApplicationCommand
-func (c *CommandCreator) Is(cmd *discordgo.ApplicationCommand) bool {
+// Is returns true if the commandCreator is approximately the same as *discordgo.ApplicationCommand
+func (c *commandCreator) Is(cmd *discordgo.ApplicationCommand) bool {
 	return cmd.DefaultMemberPermissions == c.Permission &&
 		cmd.Name == c.Name &&
 		cmd.Description == c.Description &&
 		len(cmd.Options) == len(c.Options)
 }
 
-// ToCmd turns CommandCreator into a Cmd (internal use of the API only)
-func (c *CommandCreator) ToCmd() *Cmd {
+// ToCmd turns commandCreator into a cmd (internal use of the API only)
+func (c *commandCreator) ToCmd() *cmd {
 	base := discordgo.ApplicationCommand{
 		Type:         discordgo.ChatApplicationCommand,
 		Name:         c.Name,
@@ -150,12 +137,12 @@ func (c *CommandCreator) ToCmd() *Cmd {
 			options = append(options, o.ToDiscordOption())
 		}
 		base.Options = options
-		return &Cmd{
+		return &cmd{
 			ApplicationCommand: &base,
 			Handler:            c.Handler,
 		}
 	}
-	var subsCmd []*SimpleSubCmd
+	var subsCmd []*simpleSubCmd
 	var subs []*discordgo.ApplicationCommandOption
 	for _, s := range c.Subs {
 		sub := s.ToSubCmd()
@@ -163,15 +150,15 @@ func (c *CommandCreator) ToCmd() *Cmd {
 		subs = append(subs, sub.ApplicationCommandOption)
 	}
 	base.Options = subs
-	return &Cmd{
+	return &cmd{
 		ApplicationCommand: &base,
 		Handler:            c.Handler,
 		Subs:               subsCmd,
 	}
 }
 
-// ToSubCmd turns CommandCreator into a SubCmd (internal use of the API only)
-func (c *CommandCreator) ToSubCmd() *SubCmd {
+// ToSubCmd turns commandCreator into a subCmd (internal use of the API only)
+func (c *commandCreator) ToSubCmd() *subCmd {
 	base := discordgo.ApplicationCommandOption{
 		Type:        discordgo.ApplicationCommandOptionSubCommand,
 		Name:        c.Name,
@@ -184,38 +171,27 @@ func (c *CommandCreator) ToSubCmd() *SubCmd {
 		}
 		base.Options = options
 	}
-	return &SubCmd{
+	return &subCmd{
 		ApplicationCommandOption: &base,
 		Handler:                  c.Handler,
 	}
 }
 
-// NewOption creates a new CommandOptionCreator
-func NewOption(t discordgo.ApplicationCommandOptionType, name string, description string) *CommandOptionCreator {
-	return &CommandOptionCreator{
-		Type:        t,
-		Name:        name,
-		Description: description,
-		Required:    false,
-		Choices:     []*CommandChoiceCreator{},
-	}
-}
-
-// IsRequired informs that the CommandOptionCreator is required
-func (o *CommandOptionCreator) IsRequired() *CommandOptionCreator {
+// IsRequired informs that the commandOptionCreator is required
+func (o *commandOptionCreator) IsRequired() *commandOptionCreator {
 	o.Required = true
 	return o
 }
 
-// AddChoice to the CommandOptionCreator
-func (o *CommandOptionCreator) AddChoice(c *CommandChoiceCreator) *CommandOptionCreator {
+// AddChoice to the commandOptionCreator
+func (o *commandOptionCreator) AddChoice(c *commandChoiceCreator) *commandOptionCreator {
 	o.Required = true
 	o.Choices = append(o.Choices, c)
 	return o
 }
 
-// ToDiscordOption turns CommandOptionCreator into a discordgo.ApplicationCommandOption (internal use of the API only)
-func (o *CommandOptionCreator) ToDiscordOption() *discordgo.ApplicationCommandOption {
+// ToDiscordOption turns commandOptionCreator into a discordgo.ApplicationCommandOption (internal use of the API only)
+func (o *commandOptionCreator) ToDiscordOption() *discordgo.ApplicationCommandOption {
 	var choices []*discordgo.ApplicationCommandOptionChoice
 	for _, c := range o.Choices {
 		choices = append(choices, c.ToDiscordChoice())
@@ -229,16 +205,8 @@ func (o *CommandOptionCreator) ToDiscordOption() *discordgo.ApplicationCommandOp
 	}
 }
 
-// NewChoice creates a new choice for CommandOptionCreator
-func NewChoice(name string, value interface{}) *CommandChoiceCreator {
-	return &CommandChoiceCreator{
-		Name:  name,
-		Value: value,
-	}
-}
-
-// ToDiscordChoice turns CommandChoiceCreator into a discordgo.ApplicationCommandOptionChoice (internal use of the API only)
-func (c *CommandChoiceCreator) ToDiscordChoice() *discordgo.ApplicationCommandOptionChoice {
+// ToDiscordChoice turns commandChoiceCreator into a discordgo.ApplicationCommandOptionChoice (internal use of the API only)
+func (c *commandChoiceCreator) ToDiscordChoice() *discordgo.ApplicationCommandOptionChoice {
 	return &discordgo.ApplicationCommandOptionChoice{
 		Name:  c.Name,
 		Value: c.Value,
