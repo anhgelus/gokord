@@ -16,12 +16,13 @@ func (b *Bot) updateCommands(s *discordgo.Session) {
 		b.Commands,
 		NewCommand("ping", "Connect the ping of the bot").SetHandler(commands.Ping),
 	)
-	// get important stuff
+
 	update := b.getCommandsUpdate()
 	if update == nil {
 		utils.SendAlert("bot.go - Checking the update", "update is nil, check the log")
 		return
 	}
+
 	var wg sync.WaitGroup
 	// if Debug, avoid removing commands
 	if !Debug {
@@ -70,7 +71,7 @@ func (b *Bot) removeCommands(s *discordgo.Session, update *InnovationCommands) {
 
 // registerCommands creates commands of InnovationCommands.Added and updates commands of InnovationCommands.Added
 func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands) {
-	var toUpdate []*GeneralCommand
+	var toUpdate []*CommandCreator
 	guildID := ""
 
 	// set toUpdate and guildID
@@ -86,7 +87,7 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 		toUpdate = b.Commands
 	} else {
 		for _, c := range append(update.Updated, update.Added...) {
-			id := slices.IndexFunc(b.Commands, func(e *GeneralCommand) bool {
+			id := slices.IndexFunc(b.Commands, func(e *CommandCreator) bool {
 				return c == e.Name
 			})
 			if id == -1 {
@@ -97,6 +98,7 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 		}
 	}
 
+	// update everything needed
 	appID := s.State.User.ID
 	o := 0
 	for _, c := range toUpdate {

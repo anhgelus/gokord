@@ -25,30 +25,30 @@ type SimpleSubCmd struct {
 	Handler func(s *discordgo.Session, i *discordgo.InteractionCreate) // Handler called
 }
 
-// GeneralCommand represents a generic command
-type GeneralCommand struct {
+// CommandCreator represents a generic command
+type CommandCreator struct {
 	HasSub      bool
 	IsSub       bool
 	Name        string
 	Permission  *int64
 	CanDM       bool
 	Description string
-	Options     []*GCommandOption
-	Subs        []*GeneralCommand
+	Options     []*CommandOptionCreator
+	Subs        []*CommandCreator
 	Handler     func(s *discordgo.Session, i *discordgo.InteractionCreate) // Handler called
 }
 
-// GCommandOption represents a generic option of GeneralCommand
-type GCommandOption struct {
+// CommandOptionCreator represents a generic option of CommandCreator
+type CommandOptionCreator struct {
 	Type        discordgo.ApplicationCommandOptionType
 	Name        string
 	Description string
 	Required    bool
-	Choices     []*GCommandChoice
+	Choices     []*CommandChoiceCreator
 }
 
-// GCommandChoice represents a generic choice of GCommandOption
-type GCommandChoice struct {
+// CommandChoiceCreator represents a generic choice of CommandOptionCreator
+type CommandChoiceCreator struct {
 	Name  string
 	Value interface{}
 }
@@ -65,76 +65,76 @@ func (s *SubCmd) ToSimple() *SimpleSubCmd {
 	}
 }
 
-// NewCommand creates a GeneralCommand
-func NewCommand(name string, description string) *GeneralCommand {
-	return &GeneralCommand{
+// NewCommand creates a CommandCreator
+func NewCommand(name string, description string) *CommandCreator {
+	return &CommandCreator{
 		HasSub:      false,
 		IsSub:       false,
 		Name:        name,
 		CanDM:       false,
 		Description: description,
-		Options:     []*GCommandOption{},
-		Subs:        []*GeneralCommand{},
+		Options:     []*CommandOptionCreator{},
+		Subs:        []*CommandCreator{},
 	}
 }
 
-// SetHandler of the GeneralCommand (if GeneralCommand contains subcommand, it will never be called)
-func (c *GeneralCommand) SetHandler(handler func(s *discordgo.Session, i *discordgo.InteractionCreate)) *GeneralCommand {
+// SetHandler of the CommandCreator (if CommandCreator contains subcommand, it will never be called)
+func (c *CommandCreator) SetHandler(handler func(s *discordgo.Session, i *discordgo.InteractionCreate)) *CommandCreator {
 	c.Handler = handler
 	return c
 }
 
-// ContainsSub makes the GeneralCommand able to contain subcommands
-func (c *GeneralCommand) ContainsSub() *GeneralCommand {
+// ContainsSub makes the CommandCreator able to contain subcommands
+func (c *CommandCreator) ContainsSub() *CommandCreator {
 	c.HasSub = true
 	c.Options = nil
 	return c
 }
 
-// AddSub to the GeneralCommand (also call ContainsSub)
-func (c *GeneralCommand) AddSub(s *GeneralCommand) *GeneralCommand {
+// AddSub to the CommandCreator (also call ContainsSub)
+func (c *CommandCreator) AddSub(s *CommandCreator) *CommandCreator {
 	c.ContainsSub()
 	s.IsSub = true
 	c.Subs = append(c.Subs, s)
 	return c
 }
 
-// HasOption makes the GeneralCommand able to contains GCommandOption
-func (c *GeneralCommand) HasOption() *GeneralCommand {
+// HasOption makes the CommandCreator able to contain CommandOptionCreator
+func (c *CommandCreator) HasOption() *CommandCreator {
 	c.HasSub = false
 	c.Subs = nil
 	return c
 }
 
-// AddOption to the GeneralCommand (also call HasOption)
-func (c *GeneralCommand) AddOption(s *GCommandOption) *GeneralCommand {
+// AddOption to the CommandCreator (also call HasOption)
+func (c *CommandCreator) AddOption(s *CommandOptionCreator) *CommandCreator {
 	c.HasOption()
 	c.Options = append(c.Options, s)
 	return c
 }
 
-// DM makes the GeneralCommand used in DM
-func (c *GeneralCommand) DM() *GeneralCommand {
+// DM makes the CommandCreator used in DM
+func (c *CommandCreator) DM() *CommandCreator {
 	c.CanDM = true
 	return c
 }
 
-// SetPermission of the GeneralCommand
-func (c *GeneralCommand) SetPermission(p *int64) *GeneralCommand {
+// SetPermission of the CommandCreator
+func (c *CommandCreator) SetPermission(p *int64) *CommandCreator {
 	c.Permission = p
 	return c
 }
 
-// Is returns true if the GeneralCommand is approximately the same as *discordgo.ApplicationCommand
-func (c *GeneralCommand) Is(cmd *discordgo.ApplicationCommand) bool {
+// Is returns true if the CommandCreator is approximately the same as *discordgo.ApplicationCommand
+func (c *CommandCreator) Is(cmd *discordgo.ApplicationCommand) bool {
 	return cmd.DefaultMemberPermissions == c.Permission &&
 		cmd.Name == c.Name &&
 		cmd.Description == c.Description &&
 		len(cmd.Options) == len(c.Options)
 }
 
-// ToCmd turns GeneralCommand into a Cmd (internal use of the API only)
-func (c *GeneralCommand) ToCmd() *Cmd {
+// ToCmd turns CommandCreator into a Cmd (internal use of the API only)
+func (c *CommandCreator) ToCmd() *Cmd {
 	base := discordgo.ApplicationCommand{
 		Type:         discordgo.ChatApplicationCommand,
 		Name:         c.Name,
@@ -170,8 +170,8 @@ func (c *GeneralCommand) ToCmd() *Cmd {
 	}
 }
 
-// ToSubCmd turns GeneralCommand into a SubCmd (internal use of the API only)
-func (c *GeneralCommand) ToSubCmd() *SubCmd {
+// ToSubCmd turns CommandCreator into a SubCmd (internal use of the API only)
+func (c *CommandCreator) ToSubCmd() *SubCmd {
 	base := discordgo.ApplicationCommandOption{
 		Type:        discordgo.ApplicationCommandOptionSubCommand,
 		Name:        c.Name,
@@ -190,32 +190,32 @@ func (c *GeneralCommand) ToSubCmd() *SubCmd {
 	}
 }
 
-// NewOption creates a new GCommandOption
-func NewOption(t discordgo.ApplicationCommandOptionType, name string, description string) *GCommandOption {
-	return &GCommandOption{
+// NewOption creates a new CommandOptionCreator
+func NewOption(t discordgo.ApplicationCommandOptionType, name string, description string) *CommandOptionCreator {
+	return &CommandOptionCreator{
 		Type:        t,
 		Name:        name,
 		Description: description,
 		Required:    false,
-		Choices:     []*GCommandChoice{},
+		Choices:     []*CommandChoiceCreator{},
 	}
 }
 
-// IsRequired informs that the GCommandOption is required
-func (o *GCommandOption) IsRequired() *GCommandOption {
+// IsRequired informs that the CommandOptionCreator is required
+func (o *CommandOptionCreator) IsRequired() *CommandOptionCreator {
 	o.Required = true
 	return o
 }
 
-// AddChoice to the GCommandOption
-func (o *GCommandOption) AddChoice(c *GCommandChoice) *GCommandOption {
+// AddChoice to the CommandOptionCreator
+func (o *CommandOptionCreator) AddChoice(c *CommandChoiceCreator) *CommandOptionCreator {
 	o.Required = true
 	o.Choices = append(o.Choices, c)
 	return o
 }
 
-// ToDiscordOption turns GCommandOption into a discordgo.ApplicationCommandOption (internal use of the API only)
-func (o *GCommandOption) ToDiscordOption() *discordgo.ApplicationCommandOption {
+// ToDiscordOption turns CommandOptionCreator into a discordgo.ApplicationCommandOption (internal use of the API only)
+func (o *CommandOptionCreator) ToDiscordOption() *discordgo.ApplicationCommandOption {
 	var choices []*discordgo.ApplicationCommandOptionChoice
 	for _, c := range o.Choices {
 		choices = append(choices, c.ToDiscordChoice())
@@ -229,16 +229,16 @@ func (o *GCommandOption) ToDiscordOption() *discordgo.ApplicationCommandOption {
 	}
 }
 
-// NewChoice creates a new choice for GCommandOption
-func NewChoice(name string, value interface{}) *GCommandChoice {
-	return &GCommandChoice{
+// NewChoice creates a new choice for CommandOptionCreator
+func NewChoice(name string, value interface{}) *CommandChoiceCreator {
+	return &CommandChoiceCreator{
 		Name:  name,
 		Value: value,
 	}
 }
 
-// ToDiscordChoice turns GCommandChoice into a discordgo.ApplicationCommandOptionChoice (internal use of the API only)
-func (c *GCommandChoice) ToDiscordChoice() *discordgo.ApplicationCommandOptionChoice {
+// ToDiscordChoice turns CommandChoiceCreator into a discordgo.ApplicationCommandOptionChoice (internal use of the API only)
+func (c *CommandChoiceCreator) ToDiscordChoice() *discordgo.ApplicationCommandOptionChoice {
 	return &discordgo.ApplicationCommandOptionChoice{
 		Name:  c.Name,
 		Value: c.Value,
