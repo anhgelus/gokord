@@ -55,7 +55,7 @@ func (c *commandBuilderCreator) ContainsSub() CommandBuilder {
 }
 
 func (c *commandBuilderCreator) AddSub(s CommandBuilder) CommandBuilder {
-	c.commandCreator.AddSub(c.toCreator())
+	c.commandCreator.AddSub(s.toCreator())
 	return c
 }
 

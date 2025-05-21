@@ -166,7 +166,8 @@ func (c *commandCreator) ToSubCmd() *subCmd {
 		Name:        c.Name,
 		Description: c.Description,
 	}
-	if c.Options != nil {
+	utils.SendDebug("Subcommand creation", "name", c.Name, "len(options)", len(c.Options))
+	if len(c.Options) > 0 {
 		var options []*discordgo.ApplicationCommandOption
 		for _, o := range c.Options {
 			options = append(options, o.ToDiscordOption())
