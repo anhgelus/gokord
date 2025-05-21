@@ -41,6 +41,7 @@ type Bot struct {
 	Version     *Version
 	Innovations []*Innovation
 	Name        string
+	Intents     discordgo.Intent
 }
 
 // Status contains all required information for updating the status
@@ -62,7 +63,7 @@ func (b *Bot) Start() {
 	if err != nil {
 		utils.SendAlert("bot.go - Start", err.Error())
 	}
-	dg.Identify.Intents = discordgo.IntentsAll
+	dg.Identify.Intents = b.Intents
 
 	var wg sync.WaitGroup
 	st1 := time.Now()
