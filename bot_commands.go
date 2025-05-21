@@ -126,7 +126,7 @@ func (b *Bot) setupCommandsHandlers(s *discordgo.Session) {
 		for _, cb := range b.Commands {
 			c := cb.toCreator()
 			utils.SendDebug("Setup handler", "command", c.Name)
-			if c.Subs != nil {
+			if c.HasSub {
 				utils.SendDebug("Using general handler", "command", c.Name)
 				cmdMap[c.Name] = b.generalHandler
 			} else {
