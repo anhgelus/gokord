@@ -104,7 +104,7 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 	for _, cb := range toUpdate {
 		c, err := s.ApplicationCommandCreate(appID, guildID, cb.toCreator().ToCmd().ApplicationCommand)
 		if err != nil {
-			utils.SendAlert("bot.go - Create guild application command", err.Error(), "name", cb)
+			utils.SendAlert("bot.go - Create guild application command", err.Error(), "name", cb.toCreator().Name)
 			continue
 		}
 		registeredCommands = append(registeredCommands, c)
@@ -153,12 +153,17 @@ func (b *Bot) unregisterGuildCommands(s *discordgo.Session) {
 		return
 	}
 	guildID := gs[0].ID
+	var wg sync.WaitGroup
 	for _, v := range registeredCommands {
-		err = s.ApplicationCommandDelete(s.State.User.ID, guildID, v.ID)
-		if err != nil {
-			utils.SendAlert("bot.go - Delete application command", err.Error())
-			continue
-		}
+		wg.Add(1)
+		go func() {
+			err = s.ApplicationCommandDelete(s.State.User.ID, guildID, v.ID)
+			if err != nil {
+				utils.SendAlert("bot.go - Delete application command", err.Error())
+			}
+			wg.Done()
+		}()
 	}
+	wg.Wait()
 	registeredCommands = []*discordgo.ApplicationCommand{}
 }

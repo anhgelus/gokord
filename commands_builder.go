@@ -9,7 +9,7 @@ type CommandBuilder interface {
 	ContainsSub() CommandBuilder
 	// AddSub to the CommandBuilder (also call ContainsSub)
 	AddSub(s CommandBuilder) CommandBuilder
-	// HasOption makes the CommandBuilder able to contain commandOptionCreator
+	// HasOption makes the CommandBuilder able to contain CommandOptionBuilder
 	HasOption() CommandBuilder
 	// AddOption to the CommandBuilder (also call HasOption)
 	AddOption(s CommandOptionBuilder) CommandBuilder
@@ -21,9 +21,9 @@ type CommandBuilder interface {
 }
 
 type CommandOptionBuilder interface {
-	// IsRequired informs that the commandOptionCreator is required
+	// IsRequired informs that the CommandOptionBuilder is required
 	IsRequired() CommandOptionBuilder
-	// AddChoice to the commandOptionCreator
+	// AddChoice to the CommandOptionBuilder
 	AddChoice(ch CommandChoiceBuilder) CommandOptionBuilder
 	toCreator() *commandOptionCreator
 }
