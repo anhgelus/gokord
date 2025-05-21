@@ -1,11 +1,11 @@
 package gokord
 
 import (
-	_ "embed"
 	"errors"
 	"fmt"
 	"github.com/anhgelus/gokord/utils"
 	"github.com/pelletier/go-toml/v2"
+	"gorm.io/gorm"
 	"log/slog"
 	"os"
 )
@@ -34,7 +34,7 @@ type BaseConfig interface {
 	// GetRedisCredentials returns the RedisCredentials used by the bot
 	GetRedisCredentials() *RedisCredentials
 	// GetSQLCredentials returns the SQLCredentials used by the bot
-	GetSQLCredentials() *SQLCredentials
+	GetSQLCredentials() SQLCredentials
 	// SetDefaultValues set all values of this config to their default ones. THIS IS A DESTRUCTIVE OPERATION!
 	SetDefaultValues()
 	// Marshal the config, must use toml.Marshal
@@ -43,12 +43,35 @@ type BaseConfig interface {
 	Unmarshal([]byte) error
 }
 
-// SimpleConfig is all basic configuration (debug, redis connection and database connection)
+type SQLCredentials interface {
+	// SetDefaultValues set all values of these credentials to their default ones.
+	// THIS IS A DESTRUCTIVE OPERATION!
+	SetDefaultValues()
+	// Connect to the database, must use gorm.Open
+	// (see https://gorm.io/docs/connecting_to_the_database.html)
+	Connect() (*gorm.DB, error)
+}
+
+type RedisCredentials struct {
+	Address  string `toml:"address"`
+	Password string `toml:"password"`
+	DB       int    `toml:"db"`
+}
+
+// SetDefaultValues set all values of these credentials to their default ones.
+// THIS IS A DESTRUCTIVE OPERATION!
+func (rc *RedisCredentials) SetDefaultValues() {
+	rc.Address = "localhost:6379"
+	rc.Password = "password"
+	rc.DB = 0
+}
+
+// SimpleConfig is all basic configuration (debug and author)
 type SimpleConfig struct {
 	Debug    bool              `toml:"debug"`
 	Author   string            `toml:"author"`
 	Redis    *RedisCredentials `toml:"redis"`
-	Database *SQLCredentials   `toml:"database"`
+	Database SQLCredentials    `toml:"database"`
 }
 
 func (c *SimpleConfig) IsDebug() bool {
@@ -63,17 +86,21 @@ func (c *SimpleConfig) GetRedisCredentials() *RedisCredentials {
 	return c.Redis
 }
 
-func (c *SimpleConfig) GetSQLCredentials() *SQLCredentials {
+func (c *SimpleConfig) GetSQLCredentials() SQLCredentials {
 	return c.Database
 }
 
+// SetDefaultValues set all values to their default ones.
+// THIS IS A DESTRUCTIVE OPERATION!
+//
+// It does not set default values for SimpleConfig.Database: you must implement it
 func (c *SimpleConfig) SetDefaultValues() {
 	c.Debug = false
 	c.Author = "anhgelus"
-	c.Redis = &RedisCredentials{}
-	c.Redis.SetDefaultValues()
-	c.Database = &SQLCredentials{}
-	c.Database.SetDefaultValues()
+	if UseRedis {
+		c.Redis = &RedisCredentials{}
+		c.Redis.SetDefaultValues()
+	}
 }
 
 func (c *SimpleConfig) Marshal() ([]byte, error) {
@@ -82,36 +109,6 @@ func (c *SimpleConfig) Marshal() ([]byte, error) {
 
 func (c *SimpleConfig) Unmarshal(b []byte) error {
 	return toml.Unmarshal(b, c)
-}
-
-type RedisCredentials struct {
-	Address  string `toml:"address"`
-	Password string `toml:"password"`
-	DB       int    `toml:"db"`
-}
-
-// SetDefaultValues set all values of these credentials to their default ones. THIS IS A DESTRUCTIVE OPERATION!
-func (rc *RedisCredentials) SetDefaultValues() {
-	rc.Address = "localhost:6379"
-	rc.Password = "password"
-	rc.DB = 0
-}
-
-type SQLCredentials struct {
-	Host     string `toml:"host"`
-	User     string `toml:"user"`
-	Password string `toml:"password"`
-	DBName   string `toml:"db_name"`
-	Port     int    `toml:"port"`
-}
-
-// SetDefaultValues set all values of these credentials to their default ones. THIS IS A DESTRUCTIVE OPERATION!
-func (sc *SQLCredentials) SetDefaultValues() {
-	sc.Host = "localhost"
-	sc.User = "root"
-	sc.Password = "root"
-	sc.DBName = "bot"
-	sc.Port = 5432
 }
 
 // ConfigInfo has all required information to get a config
@@ -158,14 +155,10 @@ func LoadConfig(cfg interface{}, name string, defaultValues func(), marshal func
 
 // SetupConfigs with the given configs (+ base config which is available at BaseCfg)
 //
-// customBaseConfig is the new type of BaseCfg (if you want to use SimpleConfig, you should pass nil)
+// customBaseConfig is the new type of BaseCfg
 func SetupConfigs(customBaseConfig BaseConfig, cfgInfo []*ConfigInfo) error {
 	var err error
-	if customBaseConfig != nil {
-		BaseCfg = customBaseConfig
-	} else {
-		BaseCfg = &SimpleConfig{}
-	}
+	BaseCfg = customBaseConfig
 	err = setupBaseConfig()
 	if err != nil {
 		return err
