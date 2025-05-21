@@ -41,18 +41,18 @@ func LoadInnovationFromJson(b []byte) ([]*Innovation, error) {
 	if err != nil {
 		return nil, err
 	}
-	i := make([]*Innovation, len(j))
-	for _, item := range j {
+	is := make([]*Innovation, len(j))
+	for i, item := range j {
 		v, err := ParseVersion(item.Version)
 		if err != nil {
 			return nil, err
 		}
-		i = append(i, &Innovation{
+		is[i] = &Innovation{
 			Version:  &v,
 			Commands: item.Commands,
-		})
+		}
 	}
-	return i, nil
+	return is, nil
 }
 
 func (b *Bot) getCommandsUpdate() *InnovationCommands {
