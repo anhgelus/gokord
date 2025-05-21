@@ -36,12 +36,12 @@ var NilVersion = Version{Major: 0, Minor: 0, Patch: 0}
 
 // LoadInnovationFromJson provided (could be embedded with go/embed)
 func LoadInnovationFromJson(b []byte) ([]*Innovation, error) {
-	var i []*Innovation
 	var j []*InnovationJson
 	err := json.Unmarshal(b, &j)
 	if err != nil {
 		return nil, err
 	}
+	i := make([]*Innovation, len(j))
 	for _, item := range j {
 		v, err := ParseVersion(item.Version)
 		if err != nil {
@@ -81,15 +81,13 @@ func (b *Bot) getCommandsUpdate() *InnovationCommands {
 	ver, err := ParseVersion(botData.Version)
 	if err != nil {
 		utils.SendAlert(
-			"version.go - Parsing version to compare for commands update",
-			err.Error(),
-			"version",
-			botData.Version,
+			"version.go - Parsing version to compare for commands update", err.Error(),
+			"version", botData.Version,
 		)
 		return nil
 	}
+	utils.SendDebug("last version and version of bot", "last", lat.Version, "version of bot", ver)
 	// if there is no update to do
-	utils.SendDebug("last version and version of bot", "last", lat.Version, "version of bot", ver.String())
 	if !ver.Is(&NilVersion) {
 		if lat.Version.Is(&ver) {
 			utils.SendSuccess("No updates available")
@@ -123,40 +121,40 @@ func (b *Bot) getCommandsUpdate() *InnovationCommands {
 		Updated: []string{},
 	}
 	for _, i := range after {
-		for _, cmd := range i.Commands.Added {
-			if slices.Contains(cmds.Removed, cmd) {
+		for _, c := range i.Commands.Added {
+			if slices.Contains(cmds.Removed, c) {
 				// remove from "removed" and add to "updated"
-				id = slices.Index(cmds.Removed, cmd)
+				id = slices.Index(cmds.Removed, c)
 				slices.Replace(cmds.Removed, id, id+1)
-				cmds.Updated = append(cmds.Updated, cmd)
+				cmds.Updated = append(cmds.Updated, c)
 			} else {
-				cmds.Added = append(cmds.Added, cmd)
+				cmds.Added = append(cmds.Added, c)
 			}
 		}
-		for _, cmd := range i.Commands.Updated {
-			if slices.Contains(cmds.Removed, cmd) {
+		for _, c := range i.Commands.Updated {
+			if slices.Contains(cmds.Removed, c) {
 				// remove from "removed" and add to "added"
-				id = slices.Index(cmds.Removed, cmd)
+				id = slices.Index(cmds.Removed, c)
 				slices.Replace(cmds.Removed, id, id+1)
-				cmds.Added = append(cmds.Added, cmd)
-			} else if slices.Contains(cmds.Added, cmd) {
+				cmds.Added = append(cmds.Added, c)
+			} else if slices.Contains(cmds.Added, c) {
 				// do nothing
 			} else {
-				cmds.Updated = append(cmds.Updated, cmd)
+				cmds.Updated = append(cmds.Updated, c)
 			}
 		}
-		for _, cmd := range i.Commands.Removed {
-			if slices.Contains(cmds.Added, cmd) {
+		for _, c := range i.Commands.Removed {
+			if slices.Contains(cmds.Added, c) {
 				// remove from "added"
-				id = slices.Index(cmds.Added, cmd)
+				id = slices.Index(cmds.Added, c)
 				slices.Replace(cmds.Added, id, id+1)
-			} else if slices.Contains(cmds.Updated, cmd) {
+			} else if slices.Contains(cmds.Updated, c) {
 				// remove from "updated" and add to "removed"
-				id = slices.Index(cmds.Updated, cmd)
+				id = slices.Index(cmds.Updated, c)
 				slices.Replace(cmds.Updated, id, id+1)
-				cmds.Removed = append(cmds.Removed, cmd)
+				cmds.Removed = append(cmds.Removed, c)
 			} else {
-				cmds.Removed = append(cmds.Removed, cmd)
+				cmds.Removed = append(cmds.Removed, c)
 			}
 		}
 	}

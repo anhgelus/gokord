@@ -1,6 +1,7 @@
 package gokord
 
 import (
+	"github.com/anhgelus/gokord/utils"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -120,7 +121,7 @@ func (c *commandCreator) Is(cmd *discordgo.ApplicationCommand) bool {
 		len(cmd.Options) == len(c.Options)
 }
 
-// ToCmd turns commandCreator into a cmd (internal use of the API only)
+// ToCmd turns commandCreator into a cmd
 func (c *commandCreator) ToCmd() *cmd {
 	base := discordgo.ApplicationCommand{
 		Type:         discordgo.ChatApplicationCommand,
@@ -131,6 +132,7 @@ func (c *commandCreator) ToCmd() *cmd {
 	if c.Permission != nil {
 		base.DefaultMemberPermissions = c.Permission
 	}
+	utils.SendDebug("Command creation", "name", c.Name, "has_sub", c.HasSub)
 	if !c.HasSub {
 		var options []*discordgo.ApplicationCommandOption
 		for _, o := range c.Options {
@@ -157,7 +159,7 @@ func (c *commandCreator) ToCmd() *cmd {
 	}
 }
 
-// ToSubCmd turns commandCreator into a subCmd (internal use of the API only)
+// ToSubCmd turns commandCreator into a subCmd
 func (c *commandCreator) ToSubCmd() *subCmd {
 	base := discordgo.ApplicationCommandOption{
 		Type:        discordgo.ApplicationCommandOptionSubCommand,
@@ -190,7 +192,7 @@ func (o *commandOptionCreator) AddChoice(c *commandChoiceCreator) *commandOption
 	return o
 }
 
-// ToDiscordOption turns commandOptionCreator into a discordgo.ApplicationCommandOption (internal use of the API only)
+// ToDiscordOption turns commandOptionCreator into a discordgo.ApplicationCommandOption
 func (o *commandOptionCreator) ToDiscordOption() *discordgo.ApplicationCommandOption {
 	var choices []*discordgo.ApplicationCommandOptionChoice
 	for _, c := range o.Choices {
