@@ -74,7 +74,7 @@ func (c *commandCreator) SetHandler(handler func(s *discordgo.Session, i *discor
 // ContainsSub makes the commandCreator able to contain subcommands
 func (c *commandCreator) ContainsSub() *commandCreator {
 	c.HasSub = true
-	c.Options = nil
+	c.Options = []*commandOptionCreator{}
 	return c
 }
 
@@ -89,7 +89,7 @@ func (c *commandCreator) AddSub(s *commandCreator) *commandCreator {
 // HasOption makes the commandCreator able to contain commandOptionCreator
 func (c *commandCreator) HasOption() *commandCreator {
 	c.HasSub = false
-	c.Subs = nil
+	c.Subs = []*commandCreator{}
 	return c
 }
 

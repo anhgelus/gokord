@@ -31,7 +31,9 @@ type BaseConfig interface {
 	IsDebug() bool
 	// GetAuthor returns the author (or the owner) of the bot
 	GetAuthor() string
-	// GetRedisCredentials returns the RedisCredentials used by the bot
+	// GetRedisCredentials returns the RedisCredentials used by the bot.
+	//
+	// Must return nil if gokord.UseRedis is false
 	GetRedisCredentials() *RedisCredentials
 	// GetSQLCredentials returns the SQLCredentials used by the bot
 	GetSQLCredentials() SQLCredentials
@@ -64,51 +66,6 @@ func (rc *RedisCredentials) SetDefaultValues() {
 	rc.Address = "localhost:6379"
 	rc.Password = "password"
 	rc.DB = 0
-}
-
-// SimpleConfig is all basic configuration (debug and author)
-type SimpleConfig struct {
-	Debug    bool              `toml:"debug"`
-	Author   string            `toml:"author"`
-	Redis    *RedisCredentials `toml:"redis"`
-	Database SQLCredentials    `toml:"database"`
-}
-
-func (c *SimpleConfig) IsDebug() bool {
-	return c.Debug
-}
-
-func (c *SimpleConfig) GetAuthor() string {
-	return c.Author
-}
-
-func (c *SimpleConfig) GetRedisCredentials() *RedisCredentials {
-	return c.Redis
-}
-
-func (c *SimpleConfig) GetSQLCredentials() SQLCredentials {
-	return c.Database
-}
-
-// SetDefaultValues set all values to their default ones.
-// THIS IS A DESTRUCTIVE OPERATION!
-//
-// It does not set default values for SimpleConfig.Database: you must implement it
-func (c *SimpleConfig) SetDefaultValues() {
-	c.Debug = false
-	c.Author = "anhgelus"
-	if UseRedis {
-		c.Redis = &RedisCredentials{}
-		c.Redis.SetDefaultValues()
-	}
-}
-
-func (c *SimpleConfig) Marshal() ([]byte, error) {
-	return toml.Marshal(c)
-}
-
-func (c *SimpleConfig) Unmarshal(b []byte) error {
-	return toml.Unmarshal(b, c)
 }
 
 // ConfigInfo has all required information to get a config
