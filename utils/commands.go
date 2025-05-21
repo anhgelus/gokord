@@ -14,19 +14,28 @@ type ResponseBuilder struct {
 	deferred      bool
 	edit          bool
 	messageEmbeds []*discordgo.MessageEmbed
-	I             *discordgo.InteractionCreate
-	C             *discordgo.Session
+	//
+	interaction *discordgo.InteractionCreate
+	session     *discordgo.Session
+}
+
+func NewResponseBuilder(s *discordgo.Session, i *discordgo.InteractionCreate) *ResponseBuilder {
+	return &ResponseBuilder{
+		interaction: i,
+		session:     s,
+	}
 }
 
 // Send the response
 func (res *ResponseBuilder) Send() error {
 	if res.edit {
-		_, err := res.C.InteractionResponseEdit(res.I.Interaction, &discordgo.WebhookEdit{
+		_, err := res.session.InteractionResponseEdit(res.interaction.Interaction, &discordgo.WebhookEdit{
 			Content: &res.content,
 			Embeds:  &res.messageEmbeds,
 		})
 		return err
 	}
+
 	r := &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
@@ -40,17 +49,15 @@ func (res *ResponseBuilder) Send() error {
 	if res.ephemeral {
 		r.Data.Flags = discordgo.MessageFlagsEphemeral
 	}
-	return res.C.InteractionRespond(res.I.Interaction, r)
-}
 
-func (res *ResponseBuilder) Interaction(i *discordgo.InteractionCreate) *ResponseBuilder {
-	res.I = i
-	return res
-}
+	if err := res.session.InteractionRespond(res.interaction.Interaction, r); err != nil {
+		return err
+	}
 
-func (res *ResponseBuilder) Client(c *discordgo.Session) *ResponseBuilder {
-	res.C = c
-	return res
+	if res.deferred {
+		res.IsEdit()
+	}
+	return nil
 }
 
 func (res *ResponseBuilder) IsEphemeral() *ResponseBuilder {
@@ -92,10 +99,10 @@ func (res *ResponseBuilder) Embeds(e []*discordgo.MessageEmbed) *ResponseBuilder
 	t := time.Now()
 	footer := &discordgo.MessageEmbedFooter{
 		Text:    "by " + Author,
-		IconURL: res.C.State.User.AvatarURL(""),
+		IconURL: res.session.State.User.AvatarURL(""),
 	}
 	author := &discordgo.MessageEmbedAuthor{
-		Name: res.C.State.User.Username,
+		Name: res.session.State.User.Username,
 	}
 	for _, em := range e {
 		em.Footer = footer

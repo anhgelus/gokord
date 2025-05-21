@@ -7,36 +7,33 @@ import (
 	"time"
 )
 
-func Ping(client *discordgo.Session, i *discordgo.InteractionCreate) {
-	resp := utils.ResponseBuilder{}
-	err := resp.IsDeferred().Client(client).Interaction(i).Send()
-	if err != nil {
+func Ping(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	resp := utils.NewResponseBuilder(s, i)
+	if err := resp.IsDeferred().Send(); err != nil { // sends the "is thinking..."
 		utils.SendAlert("ping.go - Respond interaction", err.Error())
 	}
-	resp.IsEdit()
 
-	response, err := client.InteractionResponse(i.Interaction)
+	response, err := s.InteractionResponse(i.Interaction)
 	if err != nil {
 		utils.SendAlert("ping.go - Interaction response", err.Error())
 	}
 
 	var msg string
 
-	interactionTimestamp, err := utils.GetTimestampFromId(i.ID)
+	timestamp, err := utils.GetTimestampFromId(i.ID)
 	if err != nil {
 		utils.SendAlert("ping.go - Connect timestamp from ID", err.Error())
 		msg = ":ping_pong: Pong !"
 	} else {
-		utils.SendDebug(interactionTimestamp.Format(time.UnixDate))
+		utils.SendDebug(timestamp.Format(time.UnixDate))
 		msg = fmt.Sprintf(
 			":ping_pong: Pong !\nLatence du bot : `%d ms`\nLatence de l'API discord : `%d ms`",
-			response.Timestamp.Sub(interactionTimestamp).Milliseconds(),
-			client.HeartbeatLatency().Milliseconds(),
+			response.Timestamp.Sub(timestamp).Milliseconds(),
+			s.HeartbeatLatency().Milliseconds(),
 		)
 	}
-	err = resp.Message(msg).Send()
 
-	if err != nil {
+	if err = resp.Message(msg).Send(); err != nil { // modifies the "is thinking..."
 		utils.SendAlert("ping.go - Interaction response edit", err.Error())
 	}
 }

@@ -11,11 +11,8 @@ var (
 )
 
 // generalHandler used for subcommand
-func (b *Bot) generalHandler(client *discordgo.Session, i *discordgo.InteractionCreate) {
-	resp := utils.ResponseBuilder{
-		I: i,
-		C: client,
-	}
+func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	resp := utils.NewResponseBuilder(s, i)
 	data := i.ApplicationCommandData()
 	if len(data.Options) == 0 {
 		utils.SendWarn("len(data.Options) == 0", "name", data.Name)
@@ -59,9 +56,9 @@ func (b *Bot) generalHandler(client *discordgo.Session, i *discordgo.Interaction
 			return
 		}
 	}
-	for _, s := range cmd.Subs {
-		if subInfo.Name == s.Name {
-			s.Handler(client, i)
+	for _, sub := range cmd.Subs {
+		if subInfo.Name == sub.Name {
+			sub.Handler(s, i)
 			return
 		}
 	}
