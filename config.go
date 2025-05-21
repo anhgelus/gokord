@@ -186,14 +186,12 @@ func SetupConfigs(customBaseConfig BaseConfig, cfgInfo []*ConfigInfo) error {
 
 	DB, err = BaseCfg.GetSQLCredentials().Connect()
 	if err != nil {
-		utils.SendAlert("config.go - connection to database", err.Error())
-		return ErrImpossibleToConnectDB
+		return errors.Join(ErrImpossibleToConnectDB, err)
 	}
 
 	err = DB.AutoMigrate(&BotData{})
 	if err != nil {
-		utils.SendAlert("config.go - migrating internal models", err.Error())
-		return ErrMigratingGokordInternalModels
+		return errors.Join(ErrMigratingGokordInternalModels, err)
 	}
 
 	if !UseRedis {
@@ -201,8 +199,7 @@ func SetupConfigs(customBaseConfig BaseConfig, cfgInfo []*ConfigInfo) error {
 	}
 	c, err := BaseCfg.GetRedisCredentials().Connect()
 	if err != nil {
-		utils.SendAlert("config.go - connection to redis", err.Error())
-		return ErrImpossibleToConnectRedis
+		return errors.Join(ErrImpossibleToConnectRedis, err)
 	}
 	_ = c.Close()
 	return nil
