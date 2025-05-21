@@ -108,7 +108,7 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 			continue
 		}
 		registeredCommands = append(registeredCommands, c)
-		utils.SendSuccess(fmt.Sprintf("Command %s initialized", cb))
+		utils.SendSuccess(fmt.Sprintf("Command %s initialized", cb.toCreator().Name))
 		o += 1
 	}
 	l := len(toUpdate)

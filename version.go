@@ -89,7 +89,7 @@ func (b *Bot) getCommandsUpdate() *InnovationCommands {
 		return nil
 	}
 	// if there is no update to do
-	utils.SendDebug("last version and version of bot", "last", lat, "version of bot", ver.String())
+	utils.SendDebug("last version and version of bot", "last", lat.Version, "version of bot", ver.String())
 	if !ver.Is(&NilVersion) {
 		if lat.Version.Is(&ver) {
 			utils.SendSuccess("No updates available")
