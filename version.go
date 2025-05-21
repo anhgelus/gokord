@@ -93,7 +93,7 @@ func (b *Bot) getCommandsUpdate() *InnovationCommands {
 			utils.SendSuccess("No updates available")
 			return &InnovationCommands{}
 		} else if !lat.Version.NewerThan(&ver) {
-			utils.SendWarn(
+			utils.SendSuccess(
 				"Bot has a newer version than the latest version available",
 				"bot_version", botData.Version,
 				"innovation_version", lat.Version,
