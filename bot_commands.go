@@ -6,25 +6,46 @@ import (
 	"github.com/anhgelus/gokord/utils"
 	"github.com/bwmarrin/discordgo"
 	"slices"
+	"sync"
 )
 
 // updateCommands of the Bot
-func (b *Bot) updateCommands(client *discordgo.Session) {
+func (b *Bot) updateCommands(s *discordgo.Session) {
 	// add ping command
 	b.Commands = append(
 		b.Commands,
 		NewCommand("ping", "Connect the ping of the bot").SetHandler(commands.Ping),
 	)
-	// removing old commands and skipping already registered commands
-	appID := client.State.Application.ID
-	cmdRegistered, err := client.ApplicationCommands(appID, "")
-	if err != nil {
-		utils.SendAlert("bot.go - Fetching slash commands", err.Error())
-		return
-	}
+	// get important stuff
 	update := b.getCommandsUpdate()
 	if update == nil {
 		utils.SendAlert("bot.go - Checking the update", "update is nil, check the log")
+		return
+	}
+	var wg sync.WaitGroup
+	// if Debug, avoid removing commands
+	if !Debug {
+		wg.Add(1)
+		go func() {
+			b.removeCommands(s, update)
+			wg.Done()
+		}()
+	}
+	wg.Add(1)
+	go func() {
+		b.registerCommands(s, update)
+		wg.Done()
+	}()
+	wg.Wait()
+	b.Version.UpdateBotVersion(b)
+}
+
+// removeCommands delete commands of InnovationCommands.Removed
+func (b *Bot) removeCommands(s *discordgo.Session, update *InnovationCommands) {
+	appID := s.State.User.ID
+	cmdRegistered, err := s.ApplicationCommands(appID, "")
+	if err != nil {
+		utils.SendAlert("bot.go - Fetching slash commands", err.Error())
 		return
 	}
 	for _, d := range update.Removed {
@@ -36,7 +57,7 @@ func (b *Bot) updateCommands(client *discordgo.Session) {
 			continue
 		}
 		c := cmdRegistered[id]
-		err = client.ApplicationCommandDelete(appID, "", cmdRegistered[id].ApplicationID)
+		err = s.ApplicationCommandDelete(appID, "", cmdRegistered[id].ApplicationID)
 		if err != nil {
 			utils.SendAlert(
 				"bot.go - Deleting slash command", err.Error(),
@@ -45,13 +66,16 @@ func (b *Bot) updateCommands(client *discordgo.Session) {
 			)
 		}
 	}
-	// registering commands
+}
+
+// registerCommands creates commands of InnovationCommands.Added and updates commands of InnovationCommands.Added
+func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands) {
 	var toUpdate []*GeneralCommand
 	guildID := ""
 
 	// set toUpdate and guildID
 	if Debug {
-		gs, err := client.UserGuilds(1, "", "", false)
+		gs, err := s.UserGuilds(1, "", "", false)
 		if err != nil {
 			utils.SendAlert("bot.go - Fetching guilds for debug", err.Error())
 			return
@@ -73,9 +97,10 @@ func (b *Bot) updateCommands(client *discordgo.Session) {
 		}
 	}
 
+	appID := s.State.User.ID
 	o := 0
 	for _, c := range toUpdate {
-		cmd, err := client.ApplicationCommandCreate(client.State.User.ID, guildID, c.ToCmd().ApplicationCommand)
+		cmd, err := s.ApplicationCommandCreate(appID, guildID, c.ToCmd().ApplicationCommand)
 		if err != nil {
 			utils.SendAlert("bot.go - Create guild application command", err.Error(), "name", c)
 			continue
@@ -91,7 +116,6 @@ func (b *Bot) updateCommands(client *discordgo.Session) {
 	} else {
 		utils.SendSuccess(msg)
 	}
-	b.Version.UpdateBotVersion(b)
 }
 
 // setupCommandsHandlers of the Bot
