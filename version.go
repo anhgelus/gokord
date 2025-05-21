@@ -55,8 +55,8 @@ func LoadInnovationFromJson(b []byte) ([]*Innovation, error) {
 	return i, nil
 }
 
-func GetCommandsUpdate(bot *Bot) *InnovationCommands {
-	remaining := bot.Innovations
+func (b *Bot) getCommandsUpdate() *InnovationCommands {
+	remaining := b.Innovations
 	slices.SortFunc(remaining, func(a, b *Innovation) int {
 		return a.Version.ForSort(b.Version)
 	})
@@ -71,10 +71,10 @@ func GetCommandsUpdate(bot *Bot) *InnovationCommands {
 		return nil
 	}
 	// loading bot data
-	botData := BotData{Name: bot.Name}
+	botData := BotData{Name: b.Name}
 	err := botData.Load()
 	if err != nil {
-		utils.SendAlert("version.go - Loading bot data for commands update", err.Error(), "name", bot.Name)
+		utils.SendAlert("version.go - Loading bot data for commands update", err.Error(), "name", b.Name)
 		return nil
 	}
 	// parse version of the bot
@@ -97,10 +97,8 @@ func GetCommandsUpdate(bot *Bot) *InnovationCommands {
 		} else if !lat.Version.NewerThan(&ver) {
 			utils.SendWarn(
 				"Bot has a newer version than the latest version available",
-				"bot_version",
-				botData.Version,
-				"innovation_version",
-				lat.Version,
+				"bot_version", botData.Version,
+				"innovation_version", lat.Version,
 			)
 			return &InnovationCommands{}
 		}
@@ -239,7 +237,7 @@ func (v *Version) SetPreRelease(p string) *Version {
 	return v
 }
 
-// NewerThan check if the version is newer than version o
+// NewerThan check if the version is newer than the version o
 //
 // Does not support pre-release checks
 func (v *Version) NewerThan(o *Version) bool {

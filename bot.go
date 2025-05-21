@@ -77,10 +77,6 @@ func (b *Bot) Start() {
 	}()
 	b.setupCommandsHandlers(dg)
 
-	//for h := range b.Handlers {
-	//	dg.AddHandler(h)
-	//}
-
 	// do after init (mainly used to register handlers)
 	b.AfterInit(dg)
 
@@ -156,7 +152,7 @@ func (b *Bot) updateCommands(client *discordgo.Session) {
 		utils.SendAlert("bot.go - Fetching slash commands", err.Error())
 		return
 	}
-	update := GetCommandsUpdate(b)
+	update := b.getCommandsUpdate()
 	if update == nil {
 		utils.SendAlert("bot.go - Checking the update", "update is nil, check the log")
 		return
@@ -173,17 +169,17 @@ func (b *Bot) updateCommands(client *discordgo.Session) {
 		err = client.ApplicationCommandDelete(appID, "", cmdRegistered[id].ApplicationID)
 		if err != nil {
 			utils.SendAlert(
-				"bot.go - Deleting slash command",
-				err.Error(),
-				"name",
-				c.Name,
-				"id",
-				c.ApplicationID,
+				"bot.go - Deleting slash command", err.Error(),
+				"name", c.Name,
+				"id", c.ApplicationID,
 			)
 		}
 	}
 	// registering commands
+	var toUpdate []*GeneralCommand
 	guildID := ""
+
+	// set toUpdate and guildID
 	if Debug {
 		gs, err := client.UserGuilds(1, "", "", false)
 		if err != nil {
@@ -192,28 +188,38 @@ func (b *Bot) updateCommands(client *discordgo.Session) {
 		} else {
 			guildID = gs[0].ID
 		}
+		// all commands (because it is in Debug)
+		toUpdate = b.Commands
+	} else {
+		for _, c := range append(update.Updated, update.Added...) {
+			id := slices.IndexFunc(b.Commands, func(e *GeneralCommand) bool {
+				return c == e.Name
+			})
+			if id == -1 {
+				utils.SendWarn("Impossible to find command", "name", c)
+				continue
+			}
+			toUpdate = append(toUpdate, b.Commands[id])
+		}
 	}
-	var registeredCommands []*discordgo.ApplicationCommand
+
 	o := 0
-	for _, c := range append(update.Updated, update.Added...) {
-		o += 1
-		id := slices.IndexFunc(b.Commands, func(e *GeneralCommand) bool {
-			return c == e.Name
-		})
-		v := b.Commands[id]
-		cmd, err := client.ApplicationCommandCreate(client.State.User.ID, guildID, v.ToCmd().ApplicationCommand)
+	for _, c := range toUpdate {
+		cmd, err := client.ApplicationCommandCreate(client.State.User.ID, guildID, c.ToCmd().ApplicationCommand)
 		if err != nil {
-			utils.SendAlert("bot.go - Create application command", err.Error(), "name", c)
+			utils.SendAlert("bot.go - Create guild application command", err.Error(), "name", c)
 			continue
 		}
 		registeredCommands = append(registeredCommands, cmd)
 		utils.SendSuccess(fmt.Sprintf("Command %s initialized", c))
+		o += 1
 	}
-	l := len(registeredCommands)
+	l := len(toUpdate)
+	msg := fmt.Sprintf("%d/%d commands has been created or updated", o, l)
 	if l != o {
-		utils.SendWarn(fmt.Sprintf("%d/%d commands has been created or updated", o, l))
+		utils.SendWarn(msg)
 	} else {
-		utils.SendSuccess(fmt.Sprintf("%d/%d commands has been created or updated", o, l))
+		utils.SendSuccess(msg)
 	}
 	b.Version.UpdateBotVersion(b)
 }
