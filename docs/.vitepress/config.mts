@@ -19,7 +19,9 @@ export default defineConfig({
         text: 'Introduction',
         items: [
           { text: 'Getting started', link: '/getting-started' },
-          { text: 'Custom config files', link: '/config' }
+          { text: 'Custom config files', link: '/config' },
+          { text: 'Innovation & Versioning', link: '/innovation' },
+          { text: 'Statuses', link: 'statuses' }
         ]
       },
 	  {
