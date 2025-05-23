@@ -3,23 +3,23 @@
 layout: home
 
 hero:
-  name: "Gokord Docs"
-  text: "Simple, lightweight and powerful DiscordGo library"
-  tagline: My great project tagline
+  name: "Gokord"
+  text: "Simple & Powerful Discord Library"
+  tagline: Focus on new features, not repetitive ones
   actions:
     - theme: brand
-      text: Markdown Examples
-      link: /markdown-examples
+      text: Getting started 
+      link: /getting-started
     - theme: alt
-      text: API Examples
-      link: /api-examples
+      text: Creating slash commands
+      link: /slash-commands/
 
 features:
-  - title: Feature A
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature B
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature C
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+  - title: Config
+    details: Use your own custom TOML configs with simple struct
+  - title: Slash commands
+    details: Create easily slash commmands with a declarative approach
+  - title: Databases
+    details: Connect automatically to SQL or Redis database(s)
 ---
 

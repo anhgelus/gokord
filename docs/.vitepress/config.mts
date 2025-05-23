@@ -3,26 +3,45 @@ import { defineConfig } from 'vitepress'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Gokord Docs",
-  description: "Simple, lightweight and powerful DiscordGo library",
+  description: "Simple & powerful Discord library",
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: 'Home', link: '/' },
-      { text: 'Examples', link: '/markdown-examples' }
+      { text: 'Getting started', link: '/getting-started' },
+      { text: 'Slash commands', link: '/slash-commands/' },
+      { text: 'Databases', link: '/databases/' },
+      { text: 'Config', link: '/config' }
     ],
 
     sidebar: [
       {
-        text: 'Examples',
+        text: 'Introduction',
         items: [
-          { text: 'Markdown Examples', link: '/markdown-examples' },
-          { text: 'Runtime API Examples', link: '/api-examples' }
+          { text: 'Getting started', link: '/getting-started' },
+          { text: 'Custom config files', link: '/config' }
+        ]
+      },
+	  {
+        text: 'Slash commands',
+        items: [
+          { text: 'Declaring new slash commands', link: '/slash-commands/' },
+          { text: 'Using options', link: '/slash-commands/options' },
+          { text: 'Using subcommands', link: '/slash-commands/sub' }
+        ]
+      },
+	  {
+        text: 'Databases',
+        items: [
+          { text: 'How to use databases', link: '/databases/' },
+          { text: 'SQL databases', link: '/databases/sql' },
+          { text: 'Redis databases', link: '/databases/redis' }
         ]
       }
     ],
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/vuejs/vitepress' }
+      { icon: 'github', link: 'https://github.com/anhgelus/gokord/' }
     ]
   }
 })
