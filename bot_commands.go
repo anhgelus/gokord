@@ -18,7 +18,9 @@ func (b *Bot) updateCommands(s *discordgo.Session) {
 			SetHandler(commands.Ping).
 			AddContext(discordgo.InteractionContextGuild).
 			AddContext(discordgo.InteractionContextBotDM).
-			AddContext(discordgo.InteractionContextPrivateChannel),
+			AddContext(discordgo.InteractionContextPrivateChannel).
+			AddIntegrationType(discordgo.ApplicationIntegrationGuildInstall).
+			AddIntegrationType(discordgo.ApplicationIntegrationUserInstall),
 	)
 
 	update := b.getCommandsUpdate()
