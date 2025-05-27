@@ -22,11 +22,13 @@ var (
 	registeredCommands []*discordgo.ApplicationCommand
 )
 
+type StatusType int
+
 const (
-	GameStatus      = 0
-	WatchStatus     = 1
-	StreamingStatus = 2
-	ListeningStatus = 3
+	GameStatus      StatusType = 0
+	WatchStatus     StatusType = 1
+	StreamingStatus StatusType = 2
+	ListeningStatus StatusType = 3
 
 	AdminPermission int64 = discordgo.PermissionManageServer // AdminPermission of the command
 )
@@ -46,9 +48,9 @@ type Bot struct {
 
 // Status contains all required information for updating the status
 type Status struct {
-	Type    int    // Type of the Status (use GameStatus or WatchStatus or StreamingStatus or ListeningStatus)
-	Content string // Content of the Status
-	Url     string // Url of the StreamingStatus
+	Type    StatusType // Type of the Status (use GameStatus or WatchStatus or StreamingStatus or ListeningStatus)
+	Content string     // Content of the Status
+	Url     string     // Url of the StreamingStatus
 }
 
 // Start the Bot (blocking instruction)
