@@ -14,8 +14,11 @@ type CommandBuilder interface {
 	// AddOption to the CommandBuilder (also call HasOption)
 	AddOption(s CommandOptionBuilder) CommandBuilder
 	// AddContext to the command.
-	// If commandCreator.Contexts is empty, discordgo.InteractionContextGuild will be added automatically
+	// If it is empty, discordgo.InteractionContextGuild will be added automatically
 	AddContext(ctx discordgo.InteractionContextType) CommandBuilder
+	// AddIntegrationType (where the command is installed).
+	// If it is empty, discordgo.ApplicationIntegrationGuildInstall will be added automatically
+	AddIntegrationType(ctx discordgo.ApplicationIntegrationType) CommandBuilder
 	// SetPermission of the CommandBuilder
 	SetPermission(p *int64) CommandBuilder
 	toCreator() *commandCreator
@@ -75,6 +78,11 @@ func (c *commandBuilderCreator) AddContext(ctx discordgo.InteractionContextType)
 	return c
 }
 
+func (c *commandBuilderCreator) AddIntegrationType(ctx discordgo.ApplicationIntegrationType) CommandBuilder {
+	c.commandCreator.AddIntegrationType(ctx)
+	return c
+}
+
 func (c *commandBuilderCreator) SetPermission(p *int64) CommandBuilder {
 	c.commandCreator.SetPermission(p)
 	return c
@@ -106,13 +114,14 @@ func (c *commandChoiceBuilderCreator) toCreator() *commandChoiceCreator {
 func NewCommand(name string, description string) CommandBuilder {
 	return &commandBuilderCreator{
 		commandCreator: &commandCreator{
-			HasSub:      false,
-			IsSub:       false,
-			Name:        name,
-			Contexts:    nil,
-			Description: description,
-			Options:     []*commandOptionCreator{},
-			Subs:        []*commandCreator{},
+			HasSub:           false,
+			IsSub:            false,
+			Name:             name,
+			Contexts:         nil,
+			IntegrationTypes: nil,
+			Description:      description,
+			Options:          []*commandOptionCreator{},
+			Subs:             []*commandCreator{},
 		},
 	}
 }

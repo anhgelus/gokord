@@ -28,15 +28,16 @@ type simpleSubCmd struct {
 
 // commandCreator represents a generic command
 type commandCreator struct {
-	HasSub      bool
-	IsSub       bool
-	Name        string
-	Permission  *int64
-	Contexts    *[]discordgo.InteractionContextType
-	Description string
-	Options     []*commandOptionCreator
-	Subs        []*commandCreator
-	Handler     func(s *discordgo.Session, i *discordgo.InteractionCreate) // Handler called
+	HasSub           bool
+	IsSub            bool
+	Name             string
+	Permission       *int64
+	Contexts         []discordgo.InteractionContextType
+	IntegrationTypes []discordgo.ApplicationIntegrationType
+	Description      string
+	Options          []*commandOptionCreator
+	Subs             []*commandCreator
+	Handler          func(s *discordgo.Session, i *discordgo.InteractionCreate) // Handler called
 }
 
 // commandOptionCreator represents a generic option of commandCreator
@@ -105,9 +106,17 @@ func (c *commandCreator) AddOption(s *commandOptionCreator) *commandCreator {
 // If commandCreator.Contexts is empty, discordgo.InteractionContextGuild will be added automatically
 func (c *commandCreator) AddContext(ctx discordgo.InteractionContextType) *commandCreator {
 	if c.Contexts == nil {
-		c.Contexts = &[]discordgo.InteractionContextType{}
+		c.Contexts = []discordgo.InteractionContextType{}
 	}
-	*c.Contexts = append(*c.Contexts, ctx)
+	c.Contexts = append(c.Contexts, ctx)
+	return c
+}
+
+func (c *commandCreator) AddIntegrationType(it discordgo.ApplicationIntegrationType) *commandCreator {
+	if c.IntegrationTypes == nil {
+		c.IntegrationTypes = []discordgo.ApplicationIntegrationType{}
+	}
+	c.IntegrationTypes = append(c.IntegrationTypes, it)
 	return c
 }
 
@@ -135,10 +144,14 @@ func (c *commandCreator) ToCmd() *cmd {
 	if c.Permission != nil {
 		base.DefaultMemberPermissions = c.Permission
 	}
-	if c.Contexts == nil || len(*c.Contexts) == 0 {
-		c.Contexts = &[]discordgo.InteractionContextType{discordgo.InteractionContextGuild}
+	if c.Contexts == nil || len(c.Contexts) == 0 {
+		c.Contexts = []discordgo.InteractionContextType{discordgo.InteractionContextGuild}
 	}
-	base.Contexts = c.Contexts
+	base.Contexts = &c.Contexts
+	if c.IntegrationTypes == nil || len(c.IntegrationTypes) == 0 {
+		c.IntegrationTypes = []discordgo.ApplicationIntegrationType{discordgo.ApplicationIntegrationGuildInstall}
+	}
+	base.IntegrationTypes = &c.IntegrationTypes
 	utils.SendDebug("Command creation", "name", c.Name, "has_sub", c.HasSub)
 	if !c.HasSub {
 		var options []*discordgo.ApplicationCommandOption
