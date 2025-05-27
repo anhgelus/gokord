@@ -62,6 +62,7 @@ func (b *Bot) Start() {
 	err = dg.Open() // Starts the bot
 	if err != nil {
 		utils.SendAlert("bot.go - Start", err.Error())
+		return
 	}
 	dg.Identify.Intents = b.Intents
 
