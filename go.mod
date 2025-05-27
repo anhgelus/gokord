@@ -3,10 +3,10 @@ module github.com/anhgelus/gokord
 go 1.24
 
 require (
-	github.com/bwmarrin/discordgo v0.28.1
+	github.com/bwmarrin/discordgo v0.29.0
 	github.com/pelletier/go-toml/v2 v2.2.4
-	github.com/redis/go-redis/v9 v9.8.0
-	gorm.io/gorm v1.26.1
+	github.com/redis/go-redis/v9 v9.9.0
+	gorm.io/gorm v1.30.0
 )
 
 require (
