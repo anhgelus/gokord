@@ -32,7 +32,7 @@ type commandCreator struct {
 	IsSub       bool
 	Name        string
 	Permission  *int64
-	CanDM       bool
+	Contexts    *[]discordgo.InteractionContextType
 	Description string
 	Options     []*commandOptionCreator
 	Subs        []*commandCreator
@@ -101,9 +101,13 @@ func (c *commandCreator) AddOption(s *commandOptionCreator) *commandCreator {
 	return c
 }
 
-// DM makes the commandCreator used in DM
-func (c *commandCreator) DM() *commandCreator {
-	c.CanDM = true
+// AddContext to the command.
+// If commandCreator.Contexts is empty, discordgo.InteractionContextGuild will be added automatically
+func (c *commandCreator) AddContext(ctx discordgo.InteractionContextType) *commandCreator {
+	if c.Contexts == nil {
+		c.Contexts = &[]discordgo.InteractionContextType{}
+	}
+	*c.Contexts = append(*c.Contexts, ctx)
 	return c
 }
 
@@ -124,14 +128,17 @@ func (c *commandCreator) Is(cmd *discordgo.ApplicationCommand) bool {
 // ToCmd turns commandCreator into a cmd
 func (c *commandCreator) ToCmd() *cmd {
 	base := discordgo.ApplicationCommand{
-		Type:         discordgo.ChatApplicationCommand,
-		Name:         c.Name,
-		DMPermission: &c.CanDM,
-		Description:  c.Description,
+		Type:        discordgo.ChatApplicationCommand,
+		Name:        c.Name,
+		Description: c.Description,
 	}
 	if c.Permission != nil {
 		base.DefaultMemberPermissions = c.Permission
 	}
+	if c.Contexts == nil || len(*c.Contexts) == 0 {
+		c.Contexts = &[]discordgo.InteractionContextType{discordgo.InteractionContextGuild}
+	}
+	base.Contexts = c.Contexts
 	utils.SendDebug("Command creation", "name", c.Name, "has_sub", c.HasSub)
 	if !c.HasSub {
 		var options []*discordgo.ApplicationCommandOption

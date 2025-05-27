@@ -13,8 +13,9 @@ type CommandBuilder interface {
 	HasOption() CommandBuilder
 	// AddOption to the CommandBuilder (also call HasOption)
 	AddOption(s CommandOptionBuilder) CommandBuilder
-	// DM makes the CommandBuilder used in DM
-	DM() CommandBuilder
+	// AddContext to the command.
+	// If commandCreator.Contexts is empty, discordgo.InteractionContextGuild will be added automatically
+	AddContext(ctx discordgo.InteractionContextType) CommandBuilder
 	// SetPermission of the CommandBuilder
 	SetPermission(p *int64) CommandBuilder
 	toCreator() *commandCreator
@@ -69,8 +70,8 @@ func (c *commandBuilderCreator) AddOption(s CommandOptionBuilder) CommandBuilder
 	return c
 }
 
-func (c *commandBuilderCreator) DM() CommandBuilder {
-	c.commandCreator.DM()
+func (c *commandBuilderCreator) AddContext(ctx discordgo.InteractionContextType) CommandBuilder {
+	c.commandCreator.AddContext(ctx)
 	return c
 }
 
@@ -108,7 +109,7 @@ func NewCommand(name string, description string) CommandBuilder {
 			HasSub:      false,
 			IsSub:       false,
 			Name:        name,
-			CanDM:       false,
+			Contexts:    nil,
 			Description: description,
 			Options:     []*commandOptionCreator{},
 			Subs:        []*commandCreator{},
