@@ -14,6 +14,7 @@ type ResponseBuilder struct {
 	deferred      bool
 	edit          bool
 	messageEmbeds []*discordgo.MessageEmbed
+	files         []*discordgo.File
 	//
 	interaction *discordgo.InteractionCreate
 	session     *discordgo.Session
@@ -32,6 +33,7 @@ func (res *ResponseBuilder) Send() error {
 		_, err := res.session.InteractionResponseEdit(res.interaction.Interaction, &discordgo.WebhookEdit{
 			Content: &res.content,
 			Embeds:  &res.messageEmbeds,
+			Files:   res.files,
 		})
 		return err
 	}
@@ -41,6 +43,7 @@ func (res *ResponseBuilder) Send() error {
 		Data: &discordgo.InteractionResponseData{
 			Content: res.content,
 			Embeds:  res.messageEmbeds,
+			Files:   res.files,
 		},
 	}
 	if res.deferred {
@@ -97,7 +100,7 @@ func (res *ResponseBuilder) Message(s string) *ResponseBuilder {
 	return res
 }
 
-func (res *ResponseBuilder) Embeds(e []*discordgo.MessageEmbed) *ResponseBuilder {
+func (res *ResponseBuilder) SetEmbeds(e []*discordgo.MessageEmbed) *ResponseBuilder {
 	t := time.Now()
 	footer := &discordgo.MessageEmbedFooter{
 		Text:    "by " + Author,
@@ -112,6 +115,11 @@ func (res *ResponseBuilder) Embeds(e []*discordgo.MessageEmbed) *ResponseBuilder
 		em.Author = author
 	}
 	res.messageEmbeds = e
+	return res
+}
+
+func (res *ResponseBuilder) SetFiles(f []*discordgo.File) *ResponseBuilder {
+	res.files = f
 	return res
 }
 
