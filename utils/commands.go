@@ -9,14 +9,14 @@ var Author string
 
 // ResponseBuilder helps to response to slash commands
 type ResponseBuilder struct {
-	content       string
-	ephemeral     bool
-	deferred      bool
-	edit          bool
-	modal         bool
-	components    []discordgo.MessageComponent
-	messageEmbeds []*discordgo.MessageEmbed
-	files         []*discordgo.File
+	content    string
+	ephemeral  bool
+	deferred   bool
+	edit       bool
+	modal      bool
+	components []discordgo.MessageComponent
+	embeds     []*discordgo.MessageEmbed
+	files      []*discordgo.File
 	//
 	interaction *discordgo.InteractionCreate
 	session     *discordgo.Session
@@ -34,7 +34,7 @@ func (res *ResponseBuilder) Send() error {
 	if res.edit {
 		_, err := res.session.InteractionResponseEdit(res.interaction.Interaction, &discordgo.WebhookEdit{
 			Content: &res.content,
-			Embeds:  &res.messageEmbeds,
+			Embeds:  &res.embeds,
 			Files:   res.files,
 		})
 		return err
@@ -44,7 +44,7 @@ func (res *ResponseBuilder) Send() error {
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: res.content,
-			Embeds:  res.messageEmbeds,
+			Embeds:  res.embeds,
 			Files:   res.files,
 		},
 	}
@@ -120,32 +120,40 @@ func (res *ResponseBuilder) SetMessage(s string) *ResponseBuilder {
 	return res
 }
 
-func (res *ResponseBuilder) SetEmbeds(e []*discordgo.MessageEmbed) *ResponseBuilder {
+func (res *ResponseBuilder) AddEmbed(e *discordgo.MessageEmbed) *ResponseBuilder {
 	t := time.Now()
-	footer := &discordgo.MessageEmbedFooter{
+	e.Footer = &discordgo.MessageEmbedFooter{
 		Text:    "by " + Author,
 		IconURL: res.session.State.User.AvatarURL(""),
 	}
-	author := &discordgo.MessageEmbedAuthor{
+	e.Timestamp = t.Format(time.RFC3339)
+	e.Author = &discordgo.MessageEmbedAuthor{
 		Name: res.session.State.User.Username,
 	}
-	for _, em := range e {
-		em.Footer = footer
-		em.Timestamp = t.Format(time.RFC3339)
-		em.Author = author
+	if res.embeds == nil {
+		res.embeds = []*discordgo.MessageEmbed{e}
+	} else {
+		res.embeds = append(res.embeds, e)
 	}
-	res.messageEmbeds = e
 	return res
 }
 
-func (res *ResponseBuilder) SetFiles(f []*discordgo.File) *ResponseBuilder {
-	res.files = f
+func (res *ResponseBuilder) AddFile(f *discordgo.File) *ResponseBuilder {
+	if res.files == nil {
+		res.files = []*discordgo.File{f}
+	} else {
+		res.files = append(res.files, f)
+	}
 	return res
 }
 
-func (res *ResponseBuilder) SetComponents(c []discordgo.MessageComponent) *ResponseBuilder {
+func (res *ResponseBuilder) AddComponent(c discordgo.MessageComponent) *ResponseBuilder {
 	res.IsModal()
-	res.components = c
+	if res.components == nil {
+		res.components = []discordgo.MessageComponent{c}
+	} else {
+		res.components = append(res.components, c)
+	}
 	return res
 }
 
