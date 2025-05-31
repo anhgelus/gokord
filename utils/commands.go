@@ -13,6 +13,8 @@ type ResponseBuilder struct {
 	ephemeral     bool
 	deferred      bool
 	edit          bool
+	modal         bool
+	components    []discordgo.MessageComponent
 	messageEmbeds []*discordgo.MessageEmbed
 	files         []*discordgo.File
 	//
@@ -52,6 +54,9 @@ func (res *ResponseBuilder) Send() error {
 	if res.ephemeral {
 		r.Data.Flags = discordgo.MessageFlagsEphemeral
 	}
+	if res.modal {
+		r.Data.Components = res.components
+	}
 
 	if err := res.session.InteractionRespond(res.interaction.Interaction, r); err != nil {
 		return err
@@ -75,6 +80,7 @@ func (res *ResponseBuilder) NotEphemeral() *ResponseBuilder {
 
 func (res *ResponseBuilder) IsDeferred() *ResponseBuilder {
 	res.NotEdit()
+	res.NotModal()
 	res.deferred = true
 	return res
 }
@@ -86,12 +92,26 @@ func (res *ResponseBuilder) NotDeferred() *ResponseBuilder {
 
 func (res *ResponseBuilder) IsEdit() *ResponseBuilder {
 	res.NotDeferred()
+	res.NotModal()
 	res.edit = true
 	return res
 }
 
 func (res *ResponseBuilder) NotEdit() *ResponseBuilder {
 	res.edit = false
+	return res
+}
+
+func (res *ResponseBuilder) IsModal() *ResponseBuilder {
+	res.NotDeferred()
+	res.NotEdit()
+	res.NotEphemeral()
+	res.modal = true
+	return res
+}
+
+func (res *ResponseBuilder) NotModal() *ResponseBuilder {
+	res.modal = false
 	return res
 }
 
@@ -120,6 +140,12 @@ func (res *ResponseBuilder) SetEmbeds(e []*discordgo.MessageEmbed) *ResponseBuil
 
 func (res *ResponseBuilder) SetFiles(f []*discordgo.File) *ResponseBuilder {
 	res.files = f
+	return res
+}
+
+func (res *ResponseBuilder) SetComponents(c []discordgo.MessageComponent) *ResponseBuilder {
+	res.IsModal()
+	res.components = c
 	return res
 }
 
