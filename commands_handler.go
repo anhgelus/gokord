@@ -16,7 +16,7 @@ func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreat
 	data := i.ApplicationCommandData()
 	if len(data.Options) == 0 {
 		utils.SendWarn("len(data.Options) == 0", "name", data.Name)
-		err := resp.IsEphemeral().Message("No subcommand identified (may be a bug)").Send()
+		err := resp.IsEphemeral().SetMessage("No subcommand identified (may be a bug)").Send()
 		if err != nil {
 			utils.SendAlert("commands_handler.go - No subcommand identified reply", err.Error())
 			return
@@ -26,7 +26,7 @@ func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreat
 	subInfo := data.Options[0]
 	if subInfo == nil {
 		utils.SendWarn("subInfo == nil", "name", data.Name)
-		err := resp.IsEphemeral().Message("No subcommand identified").Send()
+		err := resp.IsEphemeral().SetMessage("No subcommand identified").Send()
 		if err != nil {
 			utils.SendAlert("commands_handler.go - No subcommand identified reply", err.Error())
 			return
@@ -42,7 +42,7 @@ func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreat
 	}
 	if c == nil {
 		utils.SendWarn("cmd == nil", "name", data.Name)
-		err := resp.IsEphemeral().Message("Command not found").Send()
+		err := resp.IsEphemeral().SetMessage("Command not found").Send()
 		if err != nil {
 			utils.SendAlert("commands_handler.go - Command not found reply", err.Error())
 			return
@@ -51,7 +51,7 @@ func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreat
 	}
 	if c.Subs == nil {
 		utils.SendAlert("commands_handler.go - Checking subs", ErrSubsAreNil.Error())
-		err := resp.IsEphemeral().Message("Internal error, please report it").Send()
+		err := resp.IsEphemeral().SetMessage("Internal error, please report it").Send()
 		if err != nil {
 			utils.SendAlert("commands_handler.go - Command not found reply", err.Error())
 			return
@@ -64,7 +64,7 @@ func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreat
 		}
 	}
 	utils.SendWarn("Subcommand not found", "name", data.Name, "subInfo name", subInfo.Name)
-	err := resp.IsEphemeral().Message("Subcommand not found").Send()
+	err := resp.IsEphemeral().SetMessage("Subcommand not found").Send()
 	if err != nil {
 		utils.SendAlert("commands_handler.go - Subcommand not found reply", err.Error())
 		return

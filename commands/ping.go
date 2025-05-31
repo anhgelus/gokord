@@ -33,7 +33,7 @@ func Ping(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		)
 	}
 
-	if err = resp.Message(msg).Send(); err != nil { // modifies the "is thinking..."
+	if err = resp.SetMessage(msg).Send(); err != nil { // modifies the "is thinking..."
 		utils.SendAlert("ping.go - Interaction response edit", err.Error())
 	}
 }

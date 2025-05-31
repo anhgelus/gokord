@@ -115,7 +115,7 @@ func (res *ResponseBuilder) NotModal() *ResponseBuilder {
 	return res
 }
 
-func (res *ResponseBuilder) Message(s string) *ResponseBuilder {
+func (res *ResponseBuilder) SetMessage(s string) *ResponseBuilder {
 	res.content = s
 	return res
 }
