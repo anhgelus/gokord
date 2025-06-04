@@ -13,21 +13,20 @@ var (
 // generalHandler used for subcommand
 func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreate, optMap utils.OptionMap, resp *utils.ResponseBuilder) {
 	data := i.ApplicationCommandData()
-	if len(data.Options) == 0 {
-		utils.SendWarn("len(data.Options) == 0", "name", data.Name)
-		err := resp.IsEphemeral().SetMessage("No subcommand identified (may be a bug)").Send()
+	sendWarn := func(msg string, msgSend string, more ...interface{}) {
+		utils.SendWarn(msg, "name", data.Name, more)
+		err := resp.IsEphemeral().SetMessage(msgSend).Send()
 		if err != nil {
-			utils.SendAlert("commands_handler.go - No subcommand identified reply", err.Error())
+			utils.SendAlert("commands_handler.go - "+msgSend+" reply", err.Error())
 		}
+	}
+	if len(data.Options) == 0 {
+		sendWarn("len(data.Options) == 0", "No subcommand identified (may be a bug)")
 		return
 	}
 	subInfo := data.Options[0]
 	if subInfo == nil {
-		utils.SendWarn("subInfo == nil", "name", data.Name)
-		err := resp.IsEphemeral().SetMessage("No subcommand identified").Send()
-		if err != nil {
-			utils.SendAlert("commands_handler.go - No subcommand identified reply", err.Error())
-		}
+		sendWarn("subInfo == nil", "No subcommand identified")
 		return
 	}
 	var c *cmd
@@ -38,18 +37,14 @@ func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreat
 		}
 	}
 	if c == nil {
-		utils.SendWarn("cmd == nil", "name", data.Name)
-		err := resp.IsEphemeral().SetMessage("Command not found").Send()
-		if err != nil {
-			utils.SendAlert("commands_handler.go - Command not found reply", err.Error())
-		}
+		sendWarn("cmd == nil", "Command not found")
 		return
 	}
 	if c.Subs == nil {
 		utils.SendAlert("commands_handler.go - Checking subs", ErrSubsAreNil.Error())
 		err := resp.IsEphemeral().SetMessage("Internal error, please report it").Send()
 		if err != nil {
-			utils.SendAlert("commands_handler.go - Command not found reply", err.Error())
+			utils.SendAlert("commands_handler.go - Internal error reply", err.Error())
 		}
 		return
 	}
@@ -59,9 +54,5 @@ func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreat
 			return
 		}
 	}
-	utils.SendWarn("Subcommand not found", "name", data.Name, "subInfo name", subInfo.Name)
-	err := resp.IsEphemeral().SetMessage("Subcommand not found").Send()
-	if err != nil {
-		utils.SendAlert("commands_handler.go - Subcommand not found reply", err.Error())
-	}
+	sendWarn("Subcommand not found", "Subcommand not found", "subInfo Name", subInfo.Name)
 }
