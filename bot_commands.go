@@ -147,7 +147,9 @@ func (b *Bot) setupCommandsHandlers(s *discordgo.Session) {
 			return
 		}
 		if h, ok := cmdMap[i.ApplicationCommandData().Name]; ok {
-			h(s, i)
+			resp := utils.NewResponseBuilder(s, i)
+			optMap := utils.GenerateOptionMap(i)
+			h(s, i, optMap, resp)
 		}
 	})
 }

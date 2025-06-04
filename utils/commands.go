@@ -158,18 +158,20 @@ func (res *ResponseBuilder) AddComponent(c discordgo.MessageComponent) *Response
 	return res
 }
 
-func GenerateOptionMap(i *discordgo.InteractionCreate) map[string]*discordgo.ApplicationCommandInteractionDataOption {
+type OptionMap map[string]*discordgo.ApplicationCommandInteractionDataOption
+
+func GenerateOptionMap(i *discordgo.InteractionCreate) OptionMap {
 	options := i.ApplicationCommandData().Options
-	optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
+	optionMap := make(OptionMap, len(options))
 	for _, opt := range options {
 		optionMap[opt.Name] = opt
 	}
 	return optionMap
 }
 
-func GenerateOptionMapForSubcommand(i *discordgo.InteractionCreate) map[string]*discordgo.ApplicationCommandInteractionDataOption {
+func GenerateOptionMapForSubcommand(i *discordgo.InteractionCreate) OptionMap {
 	options := i.ApplicationCommandData().Options[0].Options
-	optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
+	optionMap := make(OptionMap, len(options))
 	for _, opt := range options {
 		optionMap[opt.Name] = opt
 	}

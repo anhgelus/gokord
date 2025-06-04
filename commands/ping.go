@@ -7,10 +7,10 @@ import (
 	"time"
 )
 
-func Ping(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	resp := utils.NewResponseBuilder(s, i)
+func Ping(s *discordgo.Session, i *discordgo.InteractionCreate, optMap utils.OptionMap, resp *utils.ResponseBuilder) {
 	if err := resp.IsDeferred().Send(); err != nil { // sends the "is thinking..."
 		utils.SendAlert("ping.go - Respond interaction", err.Error())
+		return
 	}
 
 	response, err := s.InteractionResponse(i.Interaction)

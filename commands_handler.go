@@ -11,15 +11,13 @@ var (
 )
 
 // generalHandler used for subcommand
-func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	resp := utils.NewResponseBuilder(s, i)
+func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreate, optMap utils.OptionMap, resp *utils.ResponseBuilder) {
 	data := i.ApplicationCommandData()
 	if len(data.Options) == 0 {
 		utils.SendWarn("len(data.Options) == 0", "name", data.Name)
 		err := resp.IsEphemeral().SetMessage("No subcommand identified (may be a bug)").Send()
 		if err != nil {
 			utils.SendAlert("commands_handler.go - No subcommand identified reply", err.Error())
-			return
 		}
 		return
 	}
@@ -29,7 +27,6 @@ func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreat
 		err := resp.IsEphemeral().SetMessage("No subcommand identified").Send()
 		if err != nil {
 			utils.SendAlert("commands_handler.go - No subcommand identified reply", err.Error())
-			return
 		}
 		return
 	}
@@ -45,7 +42,6 @@ func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreat
 		err := resp.IsEphemeral().SetMessage("Command not found").Send()
 		if err != nil {
 			utils.SendAlert("commands_handler.go - Command not found reply", err.Error())
-			return
 		}
 		return
 	}
@@ -54,12 +50,12 @@ func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreat
 		err := resp.IsEphemeral().SetMessage("Internal error, please report it").Send()
 		if err != nil {
 			utils.SendAlert("commands_handler.go - Command not found reply", err.Error())
-			return
 		}
+		return
 	}
 	for _, sub := range c.Subs {
 		if subInfo.Name == sub.Name {
-			sub.Handler(s, i)
+			sub.Handler(s, i, utils.GenerateOptionMapForSubcommand(i), resp)
 			return
 		}
 	}
@@ -67,6 +63,5 @@ func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreat
 	err := resp.IsEphemeral().SetMessage("Subcommand not found").Send()
 	if err != nil {
 		utils.SendAlert("commands_handler.go - Subcommand not found reply", err.Error())
-		return
 	}
 }

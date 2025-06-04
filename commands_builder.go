@@ -1,8 +1,11 @@
 package gokord
 
-import "github.com/bwmarrin/discordgo"
+import (
+	"github.com/anhgelus/gokord/utils"
+	"github.com/bwmarrin/discordgo"
+)
 
-type CommandHandler func(s *discordgo.Session, i *discordgo.InteractionCreate)
+type CommandHandler func(s *discordgo.Session, i *discordgo.InteractionCreate, optMap utils.OptionMap, resp *utils.ResponseBuilder)
 
 type CommandBuilder interface {
 	// SetHandler of the CommandBuilder (if it contains subcommand, it will never be called)
