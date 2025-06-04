@@ -55,9 +55,7 @@ type commandChoiceCreator struct {
 	Value interface{}
 }
 
-var (
-	cmdMap = map[string]CommandHandler{}
-)
+var cmdMap map[string]CommandHandler = nil
 
 // ToSimple turns subCmd into a simpleSubCmd
 func (s *subCmd) ToSimple() *simpleSubCmd {

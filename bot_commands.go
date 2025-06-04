@@ -128,7 +128,8 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 
 // setupCommandsHandlers of the Bot
 func (b *Bot) setupCommandsHandlers(s *discordgo.Session) {
-	if len(cmdMap) == 0 {
+	if cmdMap == nil || len(cmdMap) == 0 {
+		cmdMap = make(map[string]CommandHandler, len(b.Commands))
 		for _, cb := range b.Commands {
 			c := cb.toCreator()
 			utils.SendDebug("Setup handler", "command", c.Name)
