@@ -55,6 +55,7 @@ func (res *ResponseBuilder) Send() error {
 		r.Data.Flags = discordgo.MessageFlagsEphemeral
 	}
 	if res.modal {
+		r.Type = discordgo.InteractionResponseModal
 		r.Data.Components = res.components
 	}
 
