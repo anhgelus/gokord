@@ -10,20 +10,20 @@ import (
 // Use AdminPermission to set the admin permission
 type cmd struct {
 	*discordgo.ApplicationCommand
-	Handler func(s *discordgo.Session, i *discordgo.InteractionCreate) // Handler called
+	Handler CommandHandler // Handler called
 	Subs    []*simpleSubCmd
 }
 
 // subCmd is for the internal use of the API
 type subCmd struct {
 	*discordgo.ApplicationCommandOption
-	Handler func(s *discordgo.Session, i *discordgo.InteractionCreate) // Handler called
+	Handler CommandHandler // Handler called
 }
 
 // simpleSubCmd is for the internal use of the API
 type simpleSubCmd struct {
 	Name    string
-	Handler func(s *discordgo.Session, i *discordgo.InteractionCreate) // Handler called
+	Handler CommandHandler // Handler called
 }
 
 // commandCreator represents a generic command
@@ -37,7 +37,7 @@ type commandCreator struct {
 	Description      string
 	Options          []*commandOptionCreator
 	Subs             []*commandCreator
-	Handler          func(s *discordgo.Session, i *discordgo.InteractionCreate) // Handler called
+	Handler          CommandHandler // Handler called
 }
 
 // commandOptionCreator represents a generic option of commandCreator
@@ -56,7 +56,7 @@ type commandChoiceCreator struct {
 }
 
 var (
-	cmdMap = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){}
+	cmdMap = map[string]CommandHandler{}
 )
 
 // ToSimple turns subCmd into a simpleSubCmd
@@ -68,7 +68,7 @@ func (s *subCmd) ToSimple() *simpleSubCmd {
 }
 
 // SetHandler of the commandCreator (if commandCreator contains subcommand, it will never be called)
-func (c *commandCreator) SetHandler(handler func(s *discordgo.Session, i *discordgo.InteractionCreate)) *commandCreator {
+func (c *commandCreator) SetHandler(handler CommandHandler) *commandCreator {
 	c.Handler = handler
 	return c
 }

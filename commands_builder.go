@@ -2,9 +2,11 @@ package gokord
 
 import "github.com/bwmarrin/discordgo"
 
+type CommandHandler func(s *discordgo.Session, i *discordgo.InteractionCreate)
+
 type CommandBuilder interface {
 	// SetHandler of the CommandBuilder (if it contains subcommand, it will never be called)
-	SetHandler(handler func(s *discordgo.Session, i *discordgo.InteractionCreate)) CommandBuilder
+	SetHandler(handler CommandHandler) CommandBuilder
 	// ContainsSub makes the CommandBuilder able to contain subcommands
 	ContainsSub() CommandBuilder
 	// AddSub to the CommandBuilder (also call ContainsSub)
@@ -48,7 +50,7 @@ type commandChoiceBuilderCreator struct {
 	*commandChoiceCreator
 }
 
-func (c *commandBuilderCreator) SetHandler(handler func(s *discordgo.Session, i *discordgo.InteractionCreate)) CommandBuilder {
+func (c *commandBuilderCreator) SetHandler(handler CommandHandler) CommandBuilder {
 	c.commandCreator.SetHandler(handler)
 	return c
 }
