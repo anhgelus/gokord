@@ -142,6 +142,9 @@ func (b *Bot) setupCommandsHandlers(s *discordgo.Session) {
 		cmdMap["ping"] = commands.Ping
 	}
 	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		if i.Type != discordgo.InteractionApplicationCommand {
+			return
+		}
 		if h, ok := cmdMap[i.ApplicationCommandData().Name]; ok {
 			h(s, i)
 		}
