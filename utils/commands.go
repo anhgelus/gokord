@@ -17,6 +17,8 @@ type ResponseBuilder struct {
 	components []discordgo.MessageComponent
 	embeds     []*discordgo.MessageEmbed
 	files      []*discordgo.File
+	title      string
+	customID   string
 	//
 	interaction *discordgo.InteractionCreate
 	session     *discordgo.Session
@@ -57,6 +59,8 @@ func (res *ResponseBuilder) Send() error {
 	if res.modal {
 		r.Type = discordgo.InteractionResponseModal
 		r.Data.Components = res.components
+		r.Data.Title = res.title
+		r.Data.CustomID = res.customID
 	}
 
 	if err := res.session.InteractionRespond(res.interaction.Interaction, r); err != nil {
@@ -118,6 +122,16 @@ func (res *ResponseBuilder) NotModal() *ResponseBuilder {
 
 func (res *ResponseBuilder) SetMessage(s string) *ResponseBuilder {
 	res.content = s
+	return res
+}
+
+func (res *ResponseBuilder) SetTitle(s string) *ResponseBuilder {
+	res.title = s
+	return res
+}
+
+func (res *ResponseBuilder) SetCustomID(s string) *ResponseBuilder {
+	res.customID = s
 	return res
 }
 
