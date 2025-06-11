@@ -188,7 +188,6 @@ func (res *ResponseBuilder) AddFile(f *discordgo.File) *ResponseBuilder {
 }
 
 func (res *ResponseBuilder) AddComponent(c discordgo.MessageComponent) *ResponseBuilder {
-	res.IsModal()
 	if res.components == nil {
 		res.components = []discordgo.MessageComponent{c}
 	} else {
