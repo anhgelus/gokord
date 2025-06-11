@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"github.com/bwmarrin/discordgo"
 	"time"
 )
@@ -24,6 +25,28 @@ type ResponseBuilder struct {
 	session     *discordgo.Session
 }
 
+type ResponseBuilderError struct {
+	error
+	InteractionResponse *discordgo.InteractionResponse
+	WebhookEdit         *discordgo.WebhookEdit
+}
+
+func (e *ResponseBuilderError) FormatString() string {
+	var v interface{}
+	if e.InteractionResponse != nil {
+		v = e.InteractionResponse
+	} else if e.WebhookEdit != nil {
+		v = e.WebhookEdit
+	} else {
+		panic("ResponseBuilderError: InteractionResponse and WebhookEdit are nil")
+	}
+	b, err := json.MarshalIndent(v, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	return string(b)
+}
+
 func NewResponseBuilder(s *discordgo.Session, i *discordgo.InteractionCreate) *ResponseBuilder {
 	return &ResponseBuilder{
 		interaction: i,
@@ -32,15 +55,16 @@ func NewResponseBuilder(s *discordgo.Session, i *discordgo.InteractionCreate) *R
 }
 
 // Send the response
-func (res *ResponseBuilder) Send() error {
+func (res *ResponseBuilder) Send() *ResponseBuilderError {
 	if res.edit {
-		_, err := res.session.InteractionResponseEdit(res.interaction.Interaction, &discordgo.WebhookEdit{
+		wb := &discordgo.WebhookEdit{
 			Content:    &res.content,
 			Components: &res.components,
 			Embeds:     &res.embeds,
 			Files:      res.files,
-		})
-		return err
+		}
+		_, err := res.session.InteractionResponseEdit(res.interaction.Interaction, wb)
+		return &ResponseBuilderError{err, nil, wb}
 	}
 
 	r := &discordgo.InteractionResponse{
@@ -65,7 +89,7 @@ func (res *ResponseBuilder) Send() error {
 	}
 
 	if err := res.session.InteractionRespond(res.interaction.Interaction, r); err != nil {
-		return err
+		return &ResponseBuilderError{err, r, nil}
 	}
 
 	if res.deferred {
