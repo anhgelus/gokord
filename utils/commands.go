@@ -35,9 +35,10 @@ func NewResponseBuilder(s *discordgo.Session, i *discordgo.InteractionCreate) *R
 func (res *ResponseBuilder) Send() error {
 	if res.edit {
 		_, err := res.session.InteractionResponseEdit(res.interaction.Interaction, &discordgo.WebhookEdit{
-			Content: &res.content,
-			Embeds:  &res.embeds,
-			Files:   res.files,
+			Content:    &res.content,
+			Components: &res.components,
+			Embeds:     &res.embeds,
+			Files:      res.files,
 		})
 		return err
 	}
@@ -45,9 +46,12 @@ func (res *ResponseBuilder) Send() error {
 	r := &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: res.content,
-			Embeds:  res.embeds,
-			Files:   res.files,
+			Content:    res.content,
+			Components: res.components,
+			Embeds:     res.embeds,
+			Files:      res.files,
+			CustomID:   res.customID,
+			Title:      res.title,
 		},
 	}
 	if res.deferred {
@@ -58,9 +62,6 @@ func (res *ResponseBuilder) Send() error {
 	}
 	if res.modal {
 		r.Type = discordgo.InteractionResponseModal
-		r.Data.Components = res.components
-		r.Data.Title = res.title
-		r.Data.CustomID = res.customID
 	}
 
 	if err := res.session.InteractionRespond(res.interaction.Interaction, r); err != nil {
