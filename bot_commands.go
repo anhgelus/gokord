@@ -2,7 +2,6 @@ package gokord
 
 import (
 	"fmt"
-	"github.com/anhgelus/gokord/commands"
 	"github.com/anhgelus/gokord/utils"
 	"github.com/bwmarrin/discordgo"
 	"slices"
@@ -15,7 +14,7 @@ func (b *Bot) updateCommands(s *discordgo.Session) {
 	b.Commands = append(
 		b.Commands,
 		NewCommand("ping", "Get the ping of the bot").
-			SetHandler(commands.Ping).
+			SetHandler(pingCommand).
 			AddContext(discordgo.InteractionContextGuild).
 			AddContext(discordgo.InteractionContextBotDM).
 			AddContext(discordgo.InteractionContextPrivateChannel).
@@ -140,7 +139,7 @@ func (b *Bot) setupCommandsHandlers(s *discordgo.Session) {
 				cmdMap[c.Name] = c.Handler
 			}
 		}
-		cmdMap["ping"] = commands.Ping
+		cmdMap["ping"] = pingCommand
 	}
 	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if i.Type != discordgo.InteractionApplicationCommand {

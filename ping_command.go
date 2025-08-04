@@ -1,4 +1,4 @@
-package commands
+package gokord
 
 import (
 	"fmt"
@@ -7,22 +7,22 @@ import (
 	"time"
 )
 
-func Ping(s *discordgo.Session, i *discordgo.InteractionCreate, optMap utils.OptionMap, resp *utils.ResponseBuilder) {
+func pingCommand(s *discordgo.Session, i *discordgo.InteractionCreate, _ utils.OptionMap, resp *utils.ResponseBuilder) {
 	if err := resp.IsDeferred().Send(); err != nil { // sends the "is thinking..."
-		utils.SendAlert("ping.go - Respond interaction", err.Error())
+		utils.SendAlert("ping_command.go - Respond interaction", err.Error())
 		return
 	}
 
 	response, err := s.InteractionResponse(i.Interaction)
 	if err != nil {
-		utils.SendAlert("ping.go - Interaction response", err.Error())
+		utils.SendAlert("ping_command.go - Interaction response", err.Error())
 	}
 
 	var msg string
 
 	timestamp, err := utils.GetTimestampFromId(i.ID)
 	if err != nil {
-		utils.SendAlert("ping.go - Connect timestamp from ID", err.Error())
+		utils.SendAlert("ping_command.go - Connect timestamp from ID", err.Error())
 		msg = ":ping_pong: Pong !"
 	} else {
 		utils.SendDebug(timestamp.Format(time.UnixDate))
@@ -34,6 +34,6 @@ func Ping(s *discordgo.Session, i *discordgo.InteractionCreate, optMap utils.Opt
 	}
 
 	if err = resp.SetMessage(msg).Send(); err != nil { // modifies the "is thinking..."
-		utils.SendAlert("ping.go - Interaction response edit", err.Error())
+		utils.SendAlert("ping_command.go - Interaction response edit", err.Error())
 	}
 }
