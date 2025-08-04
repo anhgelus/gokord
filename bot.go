@@ -30,15 +30,15 @@ const (
 	StreamingStatus StatusType = 2
 	ListeningStatus StatusType = 3
 
-	AdminPermission int64 = discordgo.PermissionManageServer // AdminPermission of the command
+	AdminPermission int64 = discordgo.PermissionManageGuild // AdminPermission of the command
 )
 
 // Bot is the representation of a discord bot
 type Bot struct {
-	Token    string           // Token of the Bot
-	Status   []*Status        // Status of the Bot
-	Commands []CommandBuilder // Commands of the Bot, use NewCommand to create easily a new command
-	//Handlers []interface{} // Handlers of the Bot
+	Token       string                     // Token of the Bot
+	Status      []*Status                  // Status of the Bot
+	Commands    []CommandBuilder           // Commands of the Bot, use NewCommand to create easily a new command
+	handlers    []any                      // handlers of the Bot
 	AfterInit   func(s *discordgo.Session) // AfterInit is called after the initialization process of the Bot
 	Version     *Version
 	Innovations []*Innovation
@@ -80,6 +80,9 @@ func (b *Bot) Start() {
 	b.setupCommandsHandlers(dg)
 
 	// do after init (mainly used to register handlers)
+	for _, handler := range b.handlers {
+		dg.AddHandler(handler)
+	}
 	b.AfterInit(dg)
 
 	// wait until all setup goroutines are finished
@@ -139,3 +142,21 @@ func (b *Bot) Start() {
 
 	utils.SendSuccess("Bot shut down")
 }
+
+func (b *Bot) AddHandler(handler any) {
+	b.handlers = append(b.handlers, handler)
+}
+
+//func (b *Bot) HandleModal(handler func(s *discordgo.Session, i *discordgo.InteractionCreate, data discordgo.ModalSubmitInteractionData), id string) {
+//	b.handlers = append(b.handlers, func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+//		if i.Type != discordgo.InteractionModalSubmit {
+//			return
+//		}
+//
+//		data := i.ModalSubmitData()
+//		if data.CustomID != id {
+//			return
+//		}
+//		handler(s, i, data)
+//	})
+//}
