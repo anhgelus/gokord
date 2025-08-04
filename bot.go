@@ -147,16 +147,16 @@ func (b *Bot) AddHandler(handler any) {
 	b.handlers = append(b.handlers, handler)
 }
 
-//func (b *Bot) HandleModal(handler func(s *discordgo.Session, i *discordgo.InteractionCreate, data discordgo.ModalSubmitInteractionData), id string) {
-//	b.handlers = append(b.handlers, func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-//		if i.Type != discordgo.InteractionModalSubmit {
-//			return
-//		}
-//
-//		data := i.ModalSubmitData()
-//		if data.CustomID != id {
-//			return
-//		}
-//		handler(s, i, data)
-//	})
-//}
+func (b *Bot) HandleModal(handler func(s *discordgo.Session, i *discordgo.InteractionCreate, data discordgo.ModalSubmitInteractionData), id string) {
+	b.handlers = append(b.handlers, func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		if i.Type != discordgo.InteractionModalSubmit {
+			return
+		}
+
+		data := i.ModalSubmitData()
+		if data.CustomID != id {
+			return
+		}
+		handler(s, i, data)
+	})
+}
