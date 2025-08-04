@@ -12,8 +12,8 @@ Common code shared between my bots.
 
 ## Technologies
 
-- Go 1.22
+- Go
 - go-redis
 - pelletier/go-toml
-- GORM
+- gorm
 
