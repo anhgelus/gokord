@@ -96,7 +96,7 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 	} else {
 		for _, c := range append(update.Updated, update.Added...) {
 			id := slices.IndexFunc(b.Commands, func(e cmd.CommandBuilder) bool {
-				return c == e.toCreator().Name
+				return c == e.GetName()
 			})
 			if id == -1 {
 				utils.SendWarn("Impossible to find command", "name", c)
@@ -110,13 +110,13 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 	appID := s.State.User.ID
 	o := 0
 	for _, cb := range toUpdate {
-		c, err := s.ApplicationCommandCreate(appID, guildID, cb.toCreator().ToCmd().ApplicationCommand)
+		c, err := s.ApplicationCommandCreate(appID, guildID, cb.ApplicationCommand())
 		if err != nil {
-			utils.SendAlert("bot.go - Create guild application command", err.Error(), "name", cb.toCreator().Name)
+			utils.SendAlert("bot.go - Create guild application command", err.Error(), "name", cb.GetName())
 			continue
 		}
 		registeredCommands = append(registeredCommands, c)
-		utils.SendSuccess(fmt.Sprintf("Command %s initialized", cb.toCreator().Name))
+		utils.SendSuccess(fmt.Sprintf("Command %s initialized", cb.GetName()))
 		o += 1
 	}
 	l := len(toUpdate)
@@ -132,14 +132,13 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 func (b *Bot) setupCommandsHandlers(s *discordgo.Session) {
 	if cmdMap == nil || len(cmdMap) == 0 {
 		cmdMap = make(map[string]cmd.CommandHandler, len(b.Commands))
-		for _, cb := range b.Commands {
-			c := cb.toCreator()
-			utils.SendDebug("Setup handler", "command", c.Name)
-			if c.HasSub {
-				utils.SendDebug("Using general handler", "command", c.Name)
-				cmdMap[c.Name] = b.generalHandler
+		for _, c := range b.Commands {
+			utils.SendDebug("Setup handler", "command", c.GetName())
+			if c.HasSub() {
+				utils.SendDebug("Using general handler", "command", c.GetName())
+				cmdMap[c.GetName()] = b.generalHandler
 			} else {
-				cmdMap[c.Name] = c.Handler
+				cmdMap[c.GetName()] = c.GetHandler()
 			}
 		}
 		cmdMap["ping"] = pingCommand

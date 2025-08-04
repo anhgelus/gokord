@@ -5,38 +5,23 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// cmd is a discordgo.ApplicationCommand + its handler
-//
-// Use AdminPermission to set the admin permission
-type cmd struct {
-	*discordgo.ApplicationCommand
-	Handler CommandHandler // Handler called
-	Subs    []*simpleSubCmd
-}
-
 // subCmd is for the internal use of the API
 type subCmd struct {
 	*discordgo.ApplicationCommandOption
 	Handler CommandHandler // Handler called
 }
 
-// simpleSubCmd is for the internal use of the API
-type simpleSubCmd struct {
-	Name    string
-	Handler CommandHandler // Handler called
-}
-
 // commandCreator represents a generic command
 type commandCreator struct {
-	HasSub           bool
+	ContainsSub      bool
 	IsSub            bool
 	Name             string
 	Permission       *int64
 	Contexts         []discordgo.InteractionContextType
 	IntegrationTypes []discordgo.ApplicationIntegrationType
 	Description      string
-	Options          []*commandOptionCreator
-	Subs             []*commandCreator
+	Options          []CommandOptionBuilder
+	Subs             []CommandBuilder
 	Handler          CommandHandler // Handler called
 }
 
@@ -46,7 +31,7 @@ type commandOptionCreator struct {
 	Name        string
 	Description string
 	Required    bool
-	Choices     []*commandChoiceCreator
+	Choices     []CommandChoiceBuilder
 }
 
 // commandChoiceCreator represents a generic choice of commandOptionCreator
@@ -55,44 +40,56 @@ type commandChoiceCreator struct {
 	Value interface{}
 }
 
-// ToSimple turns subCmd into a simpleSubCmd
-func (s *subCmd) ToSimple() *simpleSubCmd {
-	return &simpleSubCmd{
-		Name:    s.Name,
-		Handler: s.Handler,
-	}
+func (c *commandCreator) GetName() string {
+	return c.Name
+}
+
+func (c *commandCreator) HasSub() bool {
+	return c.ContainsSub
+}
+
+func (c *commandCreator) GetHandler() CommandHandler {
+	return c.Handler
+}
+
+func (c *commandCreator) GetSubs() []CommandBuilder {
+	return c.Subs
+}
+
+func (c *commandCreator) setSub(b bool) {
+	c.IsSub = b
 }
 
 // SetHandler of the commandCreator (if commandCreator contains subcommand, it will never be called)
-func (c *commandCreator) SetHandler(handler CommandHandler) *commandCreator {
+func (c *commandCreator) SetHandler(handler CommandHandler) CommandBuilder {
 	c.Handler = handler
 	return c
 }
 
-// ContainsSub makes the commandCreator able to contain subcommands
-func (c *commandCreator) ContainsSub() *commandCreator {
-	c.HasSub = true
-	c.Options = []*commandOptionCreator{}
+// CanContainsSub makes the commandCreator able to contain subcommands
+func (c *commandCreator) CanContainsSub() CommandBuilder {
+	c.ContainsSub = true
+	c.Options = make([]CommandOptionBuilder, 0)
 	return c
 }
 
 // AddSub to the commandCreator (also call ContainsSub)
-func (c *commandCreator) AddSub(s *commandCreator) *commandCreator {
-	c.ContainsSub()
-	s.IsSub = true
+func (c *commandCreator) AddSub(s CommandBuilder) CommandBuilder {
+	c.CanContainsSub()
+	s.setSub(true)
 	c.Subs = append(c.Subs, s)
 	return c
 }
 
 // HasOption makes the commandCreator able to contain commandOptionCreator
-func (c *commandCreator) HasOption() *commandCreator {
-	c.HasSub = false
-	c.Subs = []*commandCreator{}
+func (c *commandCreator) HasOption() CommandBuilder {
+	c.ContainsSub = false
+	c.Subs = make([]CommandBuilder, 0)
 	return c
 }
 
 // AddOption to the commandCreator (also call HasOption)
-func (c *commandCreator) AddOption(s *commandOptionCreator) *commandCreator {
+func (c *commandCreator) AddOption(s CommandOptionBuilder) CommandBuilder {
 	c.HasOption()
 	c.Options = append(c.Options, s)
 	return c
@@ -100,7 +97,7 @@ func (c *commandCreator) AddOption(s *commandOptionCreator) *commandCreator {
 
 // AddContext to the command.
 // If commandCreator.Contexts is empty, discordgo.InteractionContextGuild will be added automatically
-func (c *commandCreator) AddContext(ctx discordgo.InteractionContextType) *commandCreator {
+func (c *commandCreator) AddContext(ctx discordgo.InteractionContextType) CommandBuilder {
 	if c.Contexts == nil {
 		c.Contexts = []discordgo.InteractionContextType{}
 	}
@@ -108,7 +105,7 @@ func (c *commandCreator) AddContext(ctx discordgo.InteractionContextType) *comma
 	return c
 }
 
-func (c *commandCreator) AddIntegrationType(it discordgo.ApplicationIntegrationType) *commandCreator {
+func (c *commandCreator) AddIntegrationType(it discordgo.ApplicationIntegrationType) CommandBuilder {
 	if c.IntegrationTypes == nil {
 		c.IntegrationTypes = []discordgo.ApplicationIntegrationType{}
 	}
@@ -117,7 +114,7 @@ func (c *commandCreator) AddIntegrationType(it discordgo.ApplicationIntegrationT
 }
 
 // SetPermission of the commandCreator
-func (c *commandCreator) SetPermission(p *int64) *commandCreator {
+func (c *commandCreator) SetPermission(p *int64) CommandBuilder {
 	c.Permission = p
 	return c
 }
@@ -130,8 +127,8 @@ func (c *commandCreator) Is(cmd *discordgo.ApplicationCommand) bool {
 		len(cmd.Options) == len(c.Options)
 }
 
-// ToCmd turns commandCreator into a cmd
-func (c *commandCreator) ToCmd() *cmd {
+// ApplicationCommand turns commandCreator into a *discordgo.ApplicationCommand
+func (c *commandCreator) ApplicationCommand() *discordgo.ApplicationCommand {
 	base := discordgo.ApplicationCommand{
 		Type:        discordgo.ChatApplicationCommand,
 		Name:        c.Name,
@@ -149,34 +146,25 @@ func (c *commandCreator) ToCmd() *cmd {
 	}
 	base.IntegrationTypes = &c.IntegrationTypes
 	utils.SendDebug("Command creation", "name", c.Name, "has_sub", c.HasSub)
-	if !c.HasSub {
+	if !c.ContainsSub {
 		var options []*discordgo.ApplicationCommandOption
 		for _, o := range c.Options {
-			options = append(options, o.ToDiscordOption())
+			options = append(options, o.toDiscordOption())
 		}
 		base.Options = options
-		return &cmd{
-			ApplicationCommand: &base,
-			Handler:            c.Handler,
-		}
+		return &base
 	}
-	var subsCmd []*simpleSubCmd
 	var subs []*discordgo.ApplicationCommandOption
 	for _, s := range c.Subs {
-		sub := s.ToSubCmd()
-		subsCmd = append(subsCmd, sub.ToSimple())
+		sub := s.toSubCmd()
 		subs = append(subs, sub.ApplicationCommandOption)
 	}
 	base.Options = subs
-	return &cmd{
-		ApplicationCommand: &base,
-		Handler:            c.Handler,
-		Subs:               subsCmd,
-	}
+	return &base
 }
 
 // ToSubCmd turns commandCreator into a subCmd
-func (c *commandCreator) ToSubCmd() *subCmd {
+func (c *commandCreator) toSubCmd() *subCmd {
 	base := discordgo.ApplicationCommandOption{
 		Type:        discordgo.ApplicationCommandOptionSubCommand,
 		Name:        c.Name,
@@ -186,7 +174,7 @@ func (c *commandCreator) ToSubCmd() *subCmd {
 	if len(c.Options) > 0 {
 		var options []*discordgo.ApplicationCommandOption
 		for _, o := range c.Options {
-			options = append(options, o.ToDiscordOption())
+			options = append(options, o.toDiscordOption())
 		}
 		base.Options = options
 	}
@@ -197,23 +185,23 @@ func (c *commandCreator) ToSubCmd() *subCmd {
 }
 
 // IsRequired informs that the commandOptionCreator is required
-func (o *commandOptionCreator) IsRequired() *commandOptionCreator {
+func (o *commandOptionCreator) IsRequired() CommandOptionBuilder {
 	o.Required = true
 	return o
 }
 
 // AddChoice to the commandOptionCreator
-func (o *commandOptionCreator) AddChoice(c *commandChoiceCreator) *commandOptionCreator {
+func (o *commandOptionCreator) AddChoice(c CommandChoiceBuilder) CommandOptionBuilder {
 	o.Required = true
 	o.Choices = append(o.Choices, c)
 	return o
 }
 
-// ToDiscordOption turns commandOptionCreator into a discordgo.ApplicationCommandOption
-func (o *commandOptionCreator) ToDiscordOption() *discordgo.ApplicationCommandOption {
+// toDiscordOption turns commandOptionCreator into a discordgo.ApplicationCommandOption
+func (o *commandOptionCreator) toDiscordOption() *discordgo.ApplicationCommandOption {
 	var choices []*discordgo.ApplicationCommandOptionChoice
 	for _, c := range o.Choices {
-		choices = append(choices, c.ToDiscordChoice())
+		choices = append(choices, c.toDiscordChoice())
 	}
 	return &discordgo.ApplicationCommandOption{
 		Type:        o.Type,
@@ -224,8 +212,8 @@ func (o *commandOptionCreator) ToDiscordOption() *discordgo.ApplicationCommandOp
 	}
 }
 
-// ToDiscordChoice turns commandChoiceCreator into a discordgo.ApplicationCommandOptionChoice (internal use of the API only)
-func (c *commandChoiceCreator) ToDiscordChoice() *discordgo.ApplicationCommandOptionChoice {
+// toDiscordChoice turns commandChoiceCreator into a discordgo.ApplicationCommandOptionChoice (internal use of the API only)
+func (c *commandChoiceCreator) toDiscordChoice() *discordgo.ApplicationCommandOptionChoice {
 	return &discordgo.ApplicationCommandOptionChoice{
 		Name:  c.Name,
 		Value: c.Value,

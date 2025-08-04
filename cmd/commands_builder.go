@@ -9,8 +9,8 @@ type CommandHandler func(s *discordgo.Session, i *discordgo.InteractionCreate, o
 type CommandBuilder interface {
 	// SetHandler of the CommandBuilder (if it contains subcommand, it will never be called)
 	SetHandler(handler CommandHandler) CommandBuilder
-	// ContainsSub makes the CommandBuilder able to contain subcommands
-	ContainsSub() CommandBuilder
+	// CanContainsSub makes the CommandBuilder able to contain subcommands
+	CanContainsSub() CommandBuilder
 	// AddSub to the CommandBuilder (also call ContainsSub)
 	AddSub(s CommandBuilder) CommandBuilder
 	// HasOption makes the CommandBuilder able to contain CommandOptionBuilder
@@ -25,8 +25,18 @@ type CommandBuilder interface {
 	AddIntegrationType(ctx discordgo.ApplicationIntegrationType) CommandBuilder
 	// SetPermission of the CommandBuilder
 	SetPermission(p *int64) CommandBuilder
-	// ToCreator returns the creator. Internal use only
-	ToCreator() *commandCreator
+	// GetName returns the name of the command
+	GetName() string
+	// HasSub returns true if the command has subcommands
+	HasSub() bool
+	// GetHandler returns the command's handler
+	GetHandler() CommandHandler
+	// GetSubs returns subcommands
+	GetSubs() []CommandBuilder
+	// ApplicationCommand returns the application command understandable by Discord
+	ApplicationCommand() *discordgo.ApplicationCommand
+	setSub(bool)
+	toSubCmd() *subCmd
 }
 
 type CommandOptionBuilder interface {
@@ -34,122 +44,42 @@ type CommandOptionBuilder interface {
 	IsRequired() CommandOptionBuilder
 	// AddChoice to the CommandOptionBuilder
 	AddChoice(ch CommandChoiceBuilder) CommandOptionBuilder
-	toCreator() *commandOptionCreator
+	toDiscordOption() *discordgo.ApplicationCommandOption
 }
 
 type CommandChoiceBuilder interface {
-	toCreator() *commandChoiceCreator
-}
-
-type commandBuilderCreator struct {
-	*commandCreator
-}
-
-type commandOptionBuilderCreator struct {
-	*commandOptionCreator
-}
-
-type commandChoiceBuilderCreator struct {
-	*commandChoiceCreator
-}
-
-func (c *commandBuilderCreator) SetHandler(handler CommandHandler) CommandBuilder {
-	c.commandCreator.SetHandler(handler)
-	return c
-}
-
-func (c *commandBuilderCreator) ContainsSub() CommandBuilder {
-	c.commandCreator.ContainsSub()
-	return c
-}
-
-func (c *commandBuilderCreator) AddSub(s CommandBuilder) CommandBuilder {
-	c.commandCreator.AddSub(s.ToCreator())
-	return c
-}
-
-func (c *commandBuilderCreator) HasOption() CommandBuilder {
-	c.commandCreator.HasOption()
-	return c
-}
-
-func (c *commandBuilderCreator) AddOption(s CommandOptionBuilder) CommandBuilder {
-	c.commandCreator.AddOption(s.toCreator())
-	return c
-}
-
-func (c *commandBuilderCreator) AddContext(ctx discordgo.InteractionContextType) CommandBuilder {
-	c.commandCreator.AddContext(ctx)
-	return c
-}
-
-func (c *commandBuilderCreator) AddIntegrationType(ctx discordgo.ApplicationIntegrationType) CommandBuilder {
-	c.commandCreator.AddIntegrationType(ctx)
-	return c
-}
-
-func (c *commandBuilderCreator) SetPermission(p *int64) CommandBuilder {
-	c.commandCreator.SetPermission(p)
-	return c
-}
-
-func (c *commandBuilderCreator) ToCreator() *commandCreator {
-	return c.commandCreator
-}
-
-func (c *commandOptionBuilderCreator) IsRequired() CommandOptionBuilder {
-	c.commandOptionCreator.IsRequired()
-	return c
-}
-
-func (c *commandOptionBuilderCreator) AddChoice(ch CommandChoiceBuilder) CommandOptionBuilder {
-	c.commandOptionCreator.AddChoice(ch.toCreator())
-	return c
-}
-
-func (c *commandOptionBuilderCreator) toCreator() *commandOptionCreator {
-	return c.commandOptionCreator
-}
-
-func (c *commandChoiceBuilderCreator) toCreator() *commandChoiceCreator {
-	return c.commandChoiceCreator
+	toDiscordChoice() *discordgo.ApplicationCommandOptionChoice
 }
 
 // NewCommand creates a new CommandBuilder
 func NewCommand(name string, description string) CommandBuilder {
-	return &commandBuilderCreator{
-		commandCreator: &commandCreator{
-			HasSub:           false,
-			IsSub:            false,
-			Name:             name,
-			Contexts:         nil,
-			IntegrationTypes: nil,
-			Description:      description,
-			Options:          []*commandOptionCreator{},
-			Subs:             []*commandCreator{},
-		},
+	return &commandCreator{
+		ContainsSub:      false,
+		IsSub:            false,
+		Name:             name,
+		Contexts:         nil,
+		IntegrationTypes: nil,
+		Description:      description,
+		Options:          []CommandOptionBuilder{},
+		Subs:             []CommandBuilder{},
 	}
 }
 
 // NewOption creates a new CommandOptionBuilder for CommandBuilder
 func NewOption(t discordgo.ApplicationCommandOptionType, name string, description string) CommandOptionBuilder {
-	return &commandOptionBuilderCreator{
-		commandOptionCreator: &commandOptionCreator{
-			Type:        t,
-			Name:        name,
-			Description: description,
-			Required:    false,
-			Choices:     []*commandChoiceCreator{},
-		},
+	return &commandOptionCreator{
+		Type:        t,
+		Name:        name,
+		Description: description,
+		Required:    false,
+		Choices:     []CommandChoiceBuilder{},
 	}
 }
 
 // NewChoice creates a new CommandChoiceBuilder for CommandOptionBuilder
 func NewChoice(name string, value interface{}) CommandChoiceBuilder {
-	return &commandChoiceBuilderCreator{
-		commandChoiceCreator: &commandChoiceCreator{
-			Name:  name,
-			Value: value,
-		},
+	return &commandChoiceCreator{
+		Name:  name,
+		Value: value,
 	}
 }
