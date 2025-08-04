@@ -38,7 +38,7 @@ const (
 type Bot struct {
 	Token       string                     // Token of the Bot
 	Status      []*Status                  // Status of the Bot
-	Commands    []cmd2.CommandBuilder      // Commands of the Bot, use NewCommand to create easily a new command
+	Commands    []cmd2.CommandBuilder      // Commands of the Bot, use New to create easily a new command
 	handlers    []any                      // handlers of the Bot
 	AfterInit   func(s *discordgo.Session) // AfterInit is called after the initialization process of the Bot
 	Version     *Version

@@ -51,8 +51,8 @@ type CommandChoiceBuilder interface {
 	toDiscordChoice() *discordgo.ApplicationCommandOptionChoice
 }
 
-// NewCommand creates a new CommandBuilder
-func NewCommand(name string, description string) CommandBuilder {
+// New creates a new CommandBuilder
+func New(name string, description string) CommandBuilder {
 	return &commandCreator{
 		ContainsSub:      false,
 		IsSub:            false,
