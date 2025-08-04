@@ -1,4 +1,4 @@
-package utils
+package cmd
 
 import (
 	"encoding/json"
@@ -185,24 +185,4 @@ func (res *ResponseBuilder) AddComponent(c discordgo.MessageComponent) *Response
 		res.components = append(res.components, c)
 	}
 	return res
-}
-
-type OptionMap map[string]*discordgo.ApplicationCommandInteractionDataOption
-
-func GenerateOptionMap(i *discordgo.InteractionCreate) OptionMap {
-	options := i.ApplicationCommandData().Options
-	optionMap := make(OptionMap, len(options))
-	for _, opt := range options {
-		optionMap[opt.Name] = opt
-	}
-	return optionMap
-}
-
-func GenerateOptionMapForSubcommand(i *discordgo.InteractionCreate) OptionMap {
-	options := i.ApplicationCommandData().Options[0].Options
-	optionMap := make(OptionMap, len(options))
-	for _, opt := range options {
-		optionMap[opt.Name] = opt
-	}
-	return optionMap
 }

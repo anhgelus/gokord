@@ -3,6 +3,7 @@ package gokord
 import (
 	"errors"
 	"fmt"
+	cmd2 "github.com/anhgelus/gokord/cmd"
 	"github.com/anhgelus/gokord/utils"
 	"github.com/pelletier/go-toml/v2"
 	"gorm.io/gorm"
@@ -122,7 +123,7 @@ func SetupConfigs(customBaseConfig BaseConfig, cfgInfo []*ConfigInfo) error {
 	}
 
 	Debug = BaseCfg.IsDebug()
-	utils.Author = BaseCfg.GetAuthor()
+	cmd2.Author = BaseCfg.GetAuthor()
 	if Debug {
 		slog.SetLogLoggerLevel(slog.LevelDebug)
 	}

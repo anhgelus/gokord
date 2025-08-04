@@ -1,4 +1,4 @@
-package gokord
+package cmd
 
 import (
 	"github.com/anhgelus/gokord/utils"
@@ -54,8 +54,6 @@ type commandChoiceCreator struct {
 	Name  string
 	Value interface{}
 }
-
-var cmdMap map[string]CommandHandler = nil
 
 // ToSimple turns subCmd into a simpleSubCmd
 func (s *subCmd) ToSimple() *simpleSubCmd {

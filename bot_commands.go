@@ -2,18 +2,21 @@ package gokord
 
 import (
 	"fmt"
+	"github.com/anhgelus/gokord/cmd"
 	"github.com/anhgelus/gokord/utils"
 	"github.com/bwmarrin/discordgo"
 	"slices"
 	"sync"
 )
 
+var cmdMap map[string]cmd.CommandHandler = nil
+
 // updateCommands of the Bot
 func (b *Bot) updateCommands(s *discordgo.Session) {
 	// add ping command
 	b.Commands = append(
 		b.Commands,
-		NewCommand("ping", "Get the ping of the bot").
+		cmd.NewCommand("ping", "Get the ping of the bot").
 			SetHandler(pingCommand).
 			AddContext(discordgo.InteractionContextGuild).
 			AddContext(discordgo.InteractionContextBotDM).
@@ -76,7 +79,7 @@ func (b *Bot) removeCommands(s *discordgo.Session, update *InnovationCommands) {
 
 // registerCommands creates commands of InnovationCommands.Added and updates commands of InnovationCommands.Added
 func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands) {
-	var toUpdate []CommandBuilder
+	var toUpdate []cmd.CommandBuilder
 	guildID := ""
 
 	// set toUpdate and guildID
@@ -92,7 +95,7 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 		toUpdate = b.Commands
 	} else {
 		for _, c := range append(update.Updated, update.Added...) {
-			id := slices.IndexFunc(b.Commands, func(e CommandBuilder) bool {
+			id := slices.IndexFunc(b.Commands, func(e cmd.CommandBuilder) bool {
 				return c == e.toCreator().Name
 			})
 			if id == -1 {
@@ -128,7 +131,7 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 // setupCommandsHandlers of the Bot
 func (b *Bot) setupCommandsHandlers(s *discordgo.Session) {
 	if cmdMap == nil || len(cmdMap) == 0 {
-		cmdMap = make(map[string]CommandHandler, len(b.Commands))
+		cmdMap = make(map[string]cmd.CommandHandler, len(b.Commands))
 		for _, cb := range b.Commands {
 			c := cb.toCreator()
 			utils.SendDebug("Setup handler", "command", c.Name)
@@ -146,8 +149,8 @@ func (b *Bot) setupCommandsHandlers(s *discordgo.Session) {
 			return
 		}
 		if h, ok := cmdMap[i.ApplicationCommandData().Name]; ok {
-			resp := utils.NewResponseBuilder(s, i)
-			optMap := utils.GenerateOptionMap(i)
+			resp := cmd.NewResponseBuilder(s, i)
+			optMap := cmd.GenerateOptionMap(i)
 			h(s, i, optMap, resp)
 		}
 	})

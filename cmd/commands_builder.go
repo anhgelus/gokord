@@ -1,11 +1,10 @@
-package gokord
+package cmd
 
 import (
-	"github.com/anhgelus/gokord/utils"
 	"github.com/bwmarrin/discordgo"
 )
 
-type CommandHandler func(s *discordgo.Session, i *discordgo.InteractionCreate, optMap utils.OptionMap, resp *utils.ResponseBuilder)
+type CommandHandler func(s *discordgo.Session, i *discordgo.InteractionCreate, optMap OptionMap, resp *ResponseBuilder)
 
 type CommandBuilder interface {
 	// SetHandler of the CommandBuilder (if it contains subcommand, it will never be called)
@@ -26,7 +25,8 @@ type CommandBuilder interface {
 	AddIntegrationType(ctx discordgo.ApplicationIntegrationType) CommandBuilder
 	// SetPermission of the CommandBuilder
 	SetPermission(p *int64) CommandBuilder
-	toCreator() *commandCreator
+	// ToCreator returns the creator. Internal use only
+	ToCreator() *commandCreator
 }
 
 type CommandOptionBuilder interface {
@@ -64,7 +64,7 @@ func (c *commandBuilderCreator) ContainsSub() CommandBuilder {
 }
 
 func (c *commandBuilderCreator) AddSub(s CommandBuilder) CommandBuilder {
-	c.commandCreator.AddSub(s.toCreator())
+	c.commandCreator.AddSub(s.ToCreator())
 	return c
 }
 
@@ -93,7 +93,7 @@ func (c *commandBuilderCreator) SetPermission(p *int64) CommandBuilder {
 	return c
 }
 
-func (c *commandBuilderCreator) toCreator() *commandCreator {
+func (c *commandBuilderCreator) ToCreator() *commandCreator {
 	return c.commandCreator
 }
 

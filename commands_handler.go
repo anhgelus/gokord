@@ -2,6 +2,7 @@ package gokord
 
 import (
 	"errors"
+	"github.com/anhgelus/gokord/cmd"
 	"github.com/anhgelus/gokord/utils"
 	"github.com/bwmarrin/discordgo"
 )
@@ -11,7 +12,7 @@ var (
 )
 
 // generalHandler used for subcommand
-func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreate, optMap utils.OptionMap, resp *utils.ResponseBuilder) {
+func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreate, _ cmd.OptionMap, resp *cmd.ResponseBuilder) {
 	data := i.ApplicationCommandData()
 	sendWarn := func(msg string, msgSend string, more ...interface{}) {
 		utils.SendWarn(msg, "name", data.Name, more)
@@ -29,7 +30,7 @@ func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreat
 		sendWarn("subInfo == nil", "No subcommand identified")
 		return
 	}
-	var c *cmd
+	var c *cmd.cmd
 	for _, cb := range b.Commands {
 		cr := cb.toCreator()
 		if cr.Name == data.Name {
@@ -50,7 +51,7 @@ func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreat
 	}
 	for _, sub := range c.Subs {
 		if subInfo.Name == sub.Name {
-			sub.Handler(s, i, utils.GenerateOptionMapForSubcommand(i), resp)
+			sub.Handler(s, i, cmd.GenerateOptionMapForSubcommand(i), resp)
 			return
 		}
 	}

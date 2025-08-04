@@ -3,6 +3,7 @@ package gokord
 import (
 	"errors"
 	"fmt"
+	cmd2 "github.com/anhgelus/gokord/cmd"
 	"github.com/anhgelus/gokord/utils"
 	"github.com/bwmarrin/discordgo"
 	"math/rand/v2"
@@ -37,7 +38,7 @@ const (
 type Bot struct {
 	Token       string                     // Token of the Bot
 	Status      []*Status                  // Status of the Bot
-	Commands    []CommandBuilder           // Commands of the Bot, use NewCommand to create easily a new command
+	Commands    []cmd2.CommandBuilder      // Commands of the Bot, use NewCommand to create easily a new command
 	handlers    []any                      // handlers of the Bot
 	AfterInit   func(s *discordgo.Session) // AfterInit is called after the initialization process of the Bot
 	Version     *Version
