@@ -3,7 +3,7 @@ package gokord
 import (
 	"errors"
 	"fmt"
-	cmd2 "github.com/anhgelus/gokord/cmd"
+	"github.com/anhgelus/gokord/cmd"
 	"github.com/anhgelus/gokord/logger"
 	"github.com/bwmarrin/discordgo"
 	"math/rand/v2"
@@ -38,7 +38,7 @@ const (
 type Bot struct {
 	Token       string                     // Token of the Bot
 	Status      []*Status                  // Status of the Bot
-	Commands    []cmd2.CommandBuilder      // Commands of the Bot, use New to create easily a new command
+	Commands    []cmd.CommandBuilder       // Commands of the Bot, use New to create easily a new command
 	handlers    []any                      // handlers of the Bot
 	AfterInit   func(s *discordgo.Session) // AfterInit is called after the initialization process of the Bot
 	Version     *Version
@@ -148,7 +148,8 @@ func (b *Bot) AddHandler(handler any) {
 	b.handlers = append(b.handlers, handler)
 }
 
-func (b *Bot) HandleModal(handler func(s *discordgo.Session, i *discordgo.InteractionCreate, data discordgo.ModalSubmitInteractionData), id string) {
+func (b *Bot) HandleModal(handler func(*discordgo.Session, *discordgo.InteractionCreate, discordgo.ModalSubmitInteractionData, *cmd.ResponseBuilder),
+	id string) {
 	b.handlers = append(b.handlers, func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if i.Type != discordgo.InteractionModalSubmit {
 			return
@@ -158,11 +159,12 @@ func (b *Bot) HandleModal(handler func(s *discordgo.Session, i *discordgo.Intera
 		if data.CustomID != id {
 			return
 		}
-		handler(s, i, data)
+		handler(s, i, data, cmd.NewResponseBuilder(s, i))
 	})
 }
 
-func (b *Bot) HandleMessageComponent(handler func(s *discordgo.Session, i *discordgo.InteractionCreate, data discordgo.MessageComponentInteractionData), id string) {
+func (b *Bot) HandleMessageComponent(handler func(*discordgo.Session, *discordgo.InteractionCreate, discordgo.MessageComponentInteractionData, *cmd.ResponseBuilder),
+	id string) {
 	b.handlers = append(b.handlers, func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if i.Type != discordgo.InteractionMessageComponent {
 			return
@@ -172,6 +174,6 @@ func (b *Bot) HandleMessageComponent(handler func(s *discordgo.Session, i *disco
 		if data.CustomID != id {
 			return
 		}
-		handler(s, i, data)
+		handler(s, i, data, cmd.NewResponseBuilder(s, i))
 	})
 }
