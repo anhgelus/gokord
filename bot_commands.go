@@ -3,7 +3,7 @@ package gokord
 import (
 	"fmt"
 	"github.com/anhgelus/gokord/cmd"
-	"github.com/anhgelus/gokord/utils"
+	"github.com/anhgelus/gokord/logger"
 	"github.com/bwmarrin/discordgo"
 	"slices"
 	"sync"
@@ -27,7 +27,7 @@ func (b *Bot) updateCommands(s *discordgo.Session) {
 
 	update := b.getCommandsUpdate()
 	if update == nil {
-		utils.SendAlert("bot.go - Checking the update", "update is nil, check the log")
+		logger.Alert("bot.go - Checking the update", "update is nil, check the log")
 		return
 	}
 
@@ -54,7 +54,7 @@ func (b *Bot) removeCommands(s *discordgo.Session, update *InnovationCommands) {
 	appID := s.State.User.ID
 	cmdRegistered, err := s.ApplicationCommands(appID, "")
 	if err != nil {
-		utils.SendAlert("bot.go - Fetching slash commands", err.Error())
+		logger.Alert("bot.go - Fetching slash commands", err.Error())
 		return
 	}
 	for _, d := range update.Removed {
@@ -62,13 +62,13 @@ func (b *Bot) removeCommands(s *discordgo.Session, update *InnovationCommands) {
 			return d == e.Name
 		})
 		if id == -1 {
-			utils.SendWarn("Command not registered cannot be deleted", "name", d)
+			logger.Warn("Command not registered cannot be deleted", "name", d)
 			continue
 		}
 		c := cmdRegistered[id]
 		err = s.ApplicationCommandDelete(appID, "", cmdRegistered[id].ApplicationID)
 		if err != nil {
-			utils.SendAlert(
+			logger.Alert(
 				"bot.go - Deleting slash command", err.Error(),
 				"name", c.Name,
 				"id", c.ApplicationID,
@@ -86,7 +86,7 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 	if Debug {
 		gs, err := s.UserGuilds(1, "", "", false)
 		if err != nil {
-			utils.SendAlert("bot.go - Fetching guilds for debug", err.Error())
+			logger.Alert("bot.go - Fetching guilds for debug", err.Error())
 			return
 		} else {
 			guildID = gs[0].ID
@@ -99,7 +99,7 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 				return c == e.GetName()
 			})
 			if id == -1 {
-				utils.SendWarn("Impossible to find command", "name", c)
+				logger.Warn("Impossible to find command", "name", c)
 				continue
 			}
 			toUpdate = append(toUpdate, b.Commands[id])
@@ -112,19 +112,19 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 	for _, cb := range toUpdate {
 		c, err := s.ApplicationCommandCreate(appID, guildID, cb.ApplicationCommand())
 		if err != nil {
-			utils.SendAlert("bot.go - Create guild application command", err.Error(), "name", cb.GetName())
+			logger.Alert("bot.go - Create guild application command", err.Error(), "name", cb.GetName())
 			continue
 		}
 		registeredCommands = append(registeredCommands, c)
-		utils.SendSuccess(fmt.Sprintf("Command %s initialized", cb.GetName()))
+		logger.Success(fmt.Sprintf("Command %s initialized", cb.GetName()))
 		o += 1
 	}
 	l := len(toUpdate)
 	msg := fmt.Sprintf("%d/%d commands has been created or updated", o, l)
 	if l != o {
-		utils.SendWarn(msg)
+		logger.Warn(msg)
 	} else {
-		utils.SendSuccess(msg)
+		logger.Success(msg)
 	}
 }
 
@@ -133,9 +133,9 @@ func (b *Bot) setupCommandsHandlers(s *discordgo.Session) {
 	if cmdMap == nil || len(cmdMap) == 0 {
 		cmdMap = make(map[string]cmd.CommandHandler, len(b.Commands))
 		for _, c := range b.Commands {
-			utils.SendDebug("Setup handler", "command", c.GetName())
+			logger.Debug("Setup handler", "command", c.GetName())
 			if c.HasSub() {
-				utils.SendDebug("Using general handler", "command", c.GetName())
+				logger.Debug("Using general handler", "command", c.GetName())
 				cmdMap[c.GetName()] = b.generalHandler
 			} else {
 				cmdMap[c.GetName()] = c.GetHandler()
@@ -162,7 +162,7 @@ func (b *Bot) unregisterGuildCommands(s *discordgo.Session) {
 	}
 	gs, err := s.UserGuilds(1, "", "", false)
 	if err != nil {
-		utils.SendAlert("bot.go - Fetching guilds for debug", err.Error())
+		logger.Alert("bot.go - Fetching guilds for debug", err.Error())
 		return
 	}
 	guildID := gs[0].ID
@@ -172,7 +172,7 @@ func (b *Bot) unregisterGuildCommands(s *discordgo.Session) {
 		go func() {
 			err = s.ApplicationCommandDelete(s.State.User.ID, guildID, v.ID)
 			if err != nil {
-				utils.SendAlert("bot.go - Delete application command", err.Error())
+				logger.Alert("bot.go - Delete application command", err.Error())
 			}
 			wg.Done()
 		}()

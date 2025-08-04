@@ -1,4 +1,4 @@
-package utils
+package logger
 
 import (
 	"log/slog"
@@ -19,8 +19,8 @@ const (
 	AnsiYellowBold  = "\033[33;1m"
 )
 
-// SendSuccess sends a success message
-func SendSuccess(message string, args ...any) {
+// Success sends a success message
+func Success(message string, args ...any) {
 	if len(args) == 0 {
 		slog.Info(AnsiGreen + message + AnsiReset)
 		return
@@ -28,8 +28,8 @@ func SendSuccess(message string, args ...any) {
 	slog.Info(AnsiGreen+message+AnsiReset, args...)
 }
 
-// SendWarn sends a warning message
-func SendWarn(message string, args ...any) {
+// Warn sends a warning message
+func Warn(message string, args ...any) {
 	if len(args) == 0 {
 		slog.Warn(AnsiYellow + message + AnsiReset)
 		return
@@ -37,8 +37,8 @@ func SendWarn(message string, args ...any) {
 	slog.Warn(AnsiYellow+message+AnsiReset, args...)
 }
 
-// SendDebug sends a debug message
-func SendDebug(message string, args ...any) {
+// Debug sends a debug message
+func Debug(message string, args ...any) {
 	if len(args) == 0 {
 		slog.Debug(AnsiCyan + message + AnsiReset)
 		return
@@ -46,8 +46,8 @@ func SendDebug(message string, args ...any) {
 	slog.Debug(AnsiCyan+message+AnsiReset, args...)
 }
 
-// SendAlert sends an alert
-func SendAlert(pos string, message string, args ...any) {
+// Alert sends an alert
+func Alert(pos string, message string, args ...any) {
 	if len(args) == 0 {
 		slog.Error(AnsiRed+message+AnsiReset, "position", pos)
 		return

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	cmd2 "github.com/anhgelus/gokord/cmd"
-	"github.com/anhgelus/gokord/utils"
+	"github.com/anhgelus/gokord/logger"
 	"github.com/pelletier/go-toml/v2"
 	"gorm.io/gorm"
 	"log/slog"
@@ -96,7 +96,7 @@ func LoadConfig(cfg interface{}, name string, defaultValues func(), marshal func
 		if !errors.Is(err, os.ErrNotExist) {
 			return err
 		}
-		utils.SendAlert("config.go - Create file", "File not found, creating a new one.")
+		logger.Alert("config.go - Create file", "File not found, creating a new one.")
 		defaultValues()
 		c, err = marshal(cfg)
 		if err != nil {

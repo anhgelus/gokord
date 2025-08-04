@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	cmd2 "github.com/anhgelus/gokord/cmd"
-	"github.com/anhgelus/gokord/utils"
+	"github.com/anhgelus/gokord/logger"
 	"github.com/bwmarrin/discordgo"
 	"math/rand/v2"
 	"os"
@@ -58,13 +58,13 @@ type Status struct {
 func (b *Bot) Start() {
 	dg, err := discordgo.New("Bot " + b.Token) // New connection to the discord API with bot token
 	if err != nil {
-		utils.SendAlert("bot.go - Token", err.Error())
+		logger.Alert("bot.go - Token", err.Error())
 		return
 	}
 
 	err = dg.Open() // Starts the bot
 	if err != nil {
-		utils.SendAlert("bot.go - Start", err.Error())
+		logger.Alert("bot.go - Start", err.Error())
 		return
 	}
 	dg.Identify.Intents = b.Intents
@@ -75,7 +75,7 @@ func (b *Bot) Start() {
 	wg.Add(1)
 	go func() {
 		b.updateCommands(dg)
-		utils.SendSuccess("Commands updated")
+		logger.Success("Commands updated")
 		wg.Done()
 	}()
 	b.setupCommandsHandlers(dg)
@@ -95,8 +95,8 @@ func (b *Bot) Start() {
 	if delta < dg.Client.Timeout.Seconds() {
 		time.Sleep(time.Duration(to-delta) * time.Second)
 	}
-	utils.SendSuccess(fmt.Sprintf("Bot started as %s", dg.State.User.Username))
-	utils.NewTimer(30*time.Second, func(stop chan<- interface{}) {
+	logger.Success(fmt.Sprintf("Bot started as %s", dg.State.User.Username))
+	NewTimer(30*time.Second, func(stop chan<- interface{}) {
 		if b.Status == nil {
 			stop <- struct{}{}
 			return
@@ -120,7 +120,7 @@ func (b *Bot) Start() {
 			err = ErrBadStatusType
 		}
 		if err != nil {
-			utils.SendAlert("bot.go - Update status", err.Error())
+			logger.Alert("bot.go - Update status", err.Error())
 			err = nil
 		}
 	})
@@ -129,19 +129,19 @@ func (b *Bot) Start() {
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
 
-	utils.SendSuccess("Bot shutting down")
+	logger.Success("Bot shutting down")
 
 	if Debug {
-		utils.SendDebug("Unregistering local commands")
+		logger.Debug("Unregistering local commands")
 		b.unregisterGuildCommands(dg)
 	}
 
 	err = dg.Close() // Bot Shutdown
 	if err != nil {
-		utils.SendAlert("bot.go - Shutdown", err.Error())
+		logger.Alert("bot.go - Shutdown", err.Error())
 	}
 
-	utils.SendSuccess("Bot shut down")
+	logger.Success("Bot shut down")
 }
 
 func (b *Bot) AddHandler(handler any) {

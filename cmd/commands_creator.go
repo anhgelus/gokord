@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/anhgelus/gokord/utils"
+	"github.com/anhgelus/gokord/logger"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -145,7 +145,7 @@ func (c *commandCreator) ApplicationCommand() *discordgo.ApplicationCommand {
 		c.IntegrationTypes = []discordgo.ApplicationIntegrationType{discordgo.ApplicationIntegrationGuildInstall}
 	}
 	base.IntegrationTypes = &c.IntegrationTypes
-	utils.SendDebug("Command creation", "name", c.Name, "has_sub", c.HasSub)
+	logger.Debug("Command creation", "name", c.Name, "has_sub", c.HasSub)
 	if !c.ContainsSub {
 		var options []*discordgo.ApplicationCommandOption
 		for _, o := range c.Options {
@@ -170,7 +170,7 @@ func (c *commandCreator) toSubCmd() *subCmd {
 		Name:        c.Name,
 		Description: c.Description,
 	}
-	utils.SendDebug("Subcommand creation", "name", c.Name, "len(options)", len(c.Options))
+	logger.Debug("Subcommand creation", "name", c.Name, "len(options)", len(c.Options))
 	if len(c.Options) > 0 {
 		var options []*discordgo.ApplicationCommandOption
 		for _, o := range c.Options {

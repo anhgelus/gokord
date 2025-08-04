@@ -3,7 +3,7 @@ package gokord
 import (
 	"errors"
 	"github.com/anhgelus/gokord/cmd"
-	"github.com/anhgelus/gokord/utils"
+	"github.com/anhgelus/gokord/logger"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -15,10 +15,10 @@ var (
 func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreate, _ cmd.OptionMap, resp *cmd.ResponseBuilder) {
 	data := i.ApplicationCommandData()
 	sendWarn := func(msg string, msgSend string, more ...interface{}) {
-		utils.SendWarn(msg, "name", data.Name, more)
+		logger.Warn(msg, "name", data.Name, more)
 		err := resp.IsEphemeral().SetMessage(msgSend).Send()
 		if err != nil {
-			utils.SendAlert("commands_handler.go - "+msgSend+" reply", err.Error())
+			logger.Alert("commands_handler.go - "+msgSend+" reply", err.Error())
 		}
 	}
 	if len(data.Options) == 0 {
@@ -41,10 +41,10 @@ func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreat
 		return
 	}
 	if c.GetSubs() == nil {
-		utils.SendAlert("commands_handler.go - Checking subs", ErrSubsAreNil.Error())
+		logger.Alert("commands_handler.go - Checking subs", ErrSubsAreNil.Error())
 		err := resp.IsEphemeral().SetMessage("Internal error, please report it").Send()
 		if err != nil {
-			utils.SendAlert("commands_handler.go - Internal error reply", err.Error())
+			logger.Alert("commands_handler.go - Internal error reply", err.Error())
 		}
 		return
 	}
