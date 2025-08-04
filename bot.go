@@ -160,3 +160,17 @@ func (b *Bot) HandleModal(handler func(s *discordgo.Session, i *discordgo.Intera
 		handler(s, i, data)
 	})
 }
+
+func (b *Bot) HandleMessageComponent(handler func(s *discordgo.Session, i *discordgo.InteractionCreate, data discordgo.MessageComponentInteractionData), id string) {
+	b.handlers = append(b.handlers, func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		if i.Type != discordgo.InteractionMessageComponent {
+			return
+		}
+
+		data := i.MessageComponentData()
+		if data.CustomID != id {
+			return
+		}
+		handler(s, i, data)
+	})
+}
