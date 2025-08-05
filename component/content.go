@@ -3,7 +3,7 @@ package component
 import "github.com/bwmarrin/discordgo"
 
 type Section struct {
-	components []*discordgo.TextDisplay
+	components []Sub
 	accessory  Accessory
 	id         int
 }
@@ -38,10 +38,35 @@ func (s *Section) SetAccessory(accessory Accessory) *Section {
 	return s
 }
 
-func (s *Section) AddComponent(c discordgo.MessageComponent) *Section {
+func (s *Section) AddComponent(sub Sub) *Section {
 	if s.components == nil {
-		s.components = make([]*discordgo.TextDisplay, len(s.components))
+		s.components = make([]Sub, len(s.components))
 	}
-	s.components = append(s.components, c)
+	s.components = append(s.components, sub)
 	return s
+}
+
+type TextDisplay struct {
+	discordgo.TextDisplay
+}
+
+func (t *TextDisplay) Component() discordgo.MessageComponent {
+	return t.TextDisplay
+}
+
+func (t *TextDisplay) IsForModal() bool {
+	return false
+}
+
+func (t *TextDisplay) CanBeInContainer() bool {
+	return true
+}
+
+func (t *TextDisplay) SetID(i int) Sub {
+	panic("Missing ID in discordgo.TextDisplay. gokord cannot fix this")
+}
+
+func (t *TextDisplay) SetContent(s string) *TextDisplay {
+	t.Content = s
+	return t
 }
