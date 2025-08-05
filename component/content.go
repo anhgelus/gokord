@@ -70,3 +70,42 @@ func (t *TextDisplay) SetContent(s string) *TextDisplay {
 	t.Content = s
 	return t
 }
+
+type Thumbnail struct {
+	discordgo.Thumbnail
+}
+
+func (t *Thumbnail) Component() discordgo.MessageComponent {
+	return t.Thumbnail
+}
+
+func (t *Thumbnail) IsForModal() bool {
+	return false
+}
+
+func (t *Thumbnail) CanBeInContainer() bool {
+	return false
+}
+
+func (t *Thumbnail) SetID(i int) Sub {
+	t.ID = i
+	return t
+}
+
+func (t *Thumbnail) IsSpoiler() *Thumbnail {
+	t.Spoiler = true
+	return t
+}
+
+func (t *Thumbnail) SetDescription(s string) *Thumbnail {
+	t.Description = &s
+	return t
+}
+
+// SetMedia takes an URL
+func (t *Thumbnail) SetMedia(s string) *Thumbnail {
+	t.Media = discordgo.UnfurledMediaItem{URL: s}
+	return t
+}
+
+func (t *Thumbnail) accessory() {}

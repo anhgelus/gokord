@@ -69,7 +69,7 @@ func (b *Button) SetCustomID(s string) Interactive {
 	return b
 }
 
-func (b *Button) SetID(i int) Interactive {
+func (b *Button) SetID(i int) Sub {
 	b.ID = i
 	return b
 }
@@ -151,7 +151,7 @@ func (s *StringSelect) SetCustomID(id string) Interactive {
 	return s
 }
 
-func (s *StringSelect) SetID(i int) Interactive {
+func (s *StringSelect) SetID(i int) Sub {
 	s.ID = i
 	return s
 }
@@ -205,7 +205,7 @@ func (t *TextInput) SetCustomID(s string) Interactive {
 	return t
 }
 
-func (t *TextInput) SetID(i int) Interactive {
+func (t *TextInput) SetID(i int) Sub {
 	t.ID = i
 	return t
 }
@@ -267,7 +267,7 @@ func (u *UserSelect) SetCustomID(s string) Interactive {
 	return u
 }
 
-func (u *UserSelect) SetID(i int) Interactive {
+func (u *UserSelect) SetID(i int) Sub {
 	u.ID = i
 	return u
 }
@@ -322,7 +322,7 @@ func (r *RoleSelect) SetCustomID(s string) Interactive {
 	return r
 }
 
-func (r *RoleSelect) SetID(i int) Interactive {
+func (r *RoleSelect) SetID(i int) Sub {
 	r.ID = i
 	return r
 }
@@ -377,7 +377,7 @@ func (m *MentionableSelect) SetCustomID(s string) Interactive {
 	return m
 }
 
-func (m *MentionableSelect) SetID(i int) Interactive {
+func (m *MentionableSelect) SetID(i int) Sub {
 	m.ID = i
 	return m
 }
@@ -432,7 +432,7 @@ func (m *ChannelSelect) SetCustomID(s string) Interactive {
 	return m
 }
 
-func (m *ChannelSelect) SetID(i int) Interactive {
+func (m *ChannelSelect) SetID(i int) Sub {
 	m.ID = i
 	return m
 }

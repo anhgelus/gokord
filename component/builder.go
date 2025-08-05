@@ -19,6 +19,7 @@ type Interactive interface {
 	Component() discordgo.MessageComponent
 	IsForModal() bool
 	CanBeInContainer() bool // must be false
+	SetID(int) Sub
 	SetCustomID(string) Interactive
 }
 
@@ -26,7 +27,8 @@ type Accessory interface {
 	Component() discordgo.MessageComponent
 	IsForModal() bool
 	CanBeInContainer() bool // must be false
-	accessory()             // does nothing
+	SetID(int) Sub
+	accessory() // does nothing
 }
 
 type containerBuilder struct {
