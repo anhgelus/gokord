@@ -238,3 +238,58 @@ func (t *TextInput) SetValue(v string) *TextInput {
 	t.Value = v
 	return t
 }
+
+type UserSelect struct {
+	discordgo.SelectMenu
+}
+
+func (u *UserSelect) Component() discordgo.MessageComponent {
+	return u.SelectMenu
+}
+
+func (u *UserSelect) IsForModal() bool {
+	return false
+}
+
+func (u *UserSelect) CanBeInContainer() bool {
+	return false
+}
+
+func (u *UserSelect) SetCustomID(s string) Interactive {
+	u.CustomID = s
+	return u
+}
+
+func (u *UserSelect) SetID(i int) Interactive {
+	u.ID = i
+	return u
+}
+
+func (u *UserSelect) IsDisabled() *UserSelect {
+	u.Disabled = true
+	return u
+}
+
+func (u *UserSelect) SetMinValues(i int) *UserSelect {
+	u.MinValues = &i
+	return u
+}
+
+func (u *UserSelect) SetMaxValues(i int) *UserSelect {
+	u.MaxValues = i
+	return u
+}
+
+func (u *UserSelect) SetPlaceholder(placeholder string) *UserSelect {
+	u.Placeholder = placeholder
+	return u
+}
+
+// discordgo does not seem to support this
+//func (u *UserSelect) AddOption(opt *SelectOption) *UserSelect {
+//	if u.Options == nil {
+//		u.Options = []discordgo.SelectMenuOption{}
+//	}
+//	u.Options = append(u.Options, opt.SelectMenuOption)
+//	return u
+//}
