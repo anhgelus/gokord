@@ -403,3 +403,66 @@ func (m *MentionableSelect) AddDefault(id string, tp discordgo.SelectMenuDefault
 	m.DefaultValues = append(m.DefaultValues, discordgo.SelectMenuDefaultValue{ID: id, Type: tp})
 	return m
 }
+
+type ChannelSelect struct {
+	discordgo.SelectMenu
+}
+
+func (m *ChannelSelect) Component() discordgo.MessageComponent {
+	m.MenuType = discordgo.ChannelSelectMenu
+	return m.SelectMenu
+}
+
+func (m *ChannelSelect) IsForModal() bool {
+	return false
+}
+
+func (m *ChannelSelect) CanBeInContainer() bool {
+	return false
+}
+
+func (m *ChannelSelect) SetCustomID(s string) Interactive {
+	m.CustomID = s
+	return m
+}
+
+func (m *ChannelSelect) SetID(i int) Interactive {
+	m.ID = i
+	return m
+}
+
+func (m *ChannelSelect) IsDisabled() *ChannelSelect {
+	m.Disabled = true
+	return m
+}
+
+func (m *ChannelSelect) SetMinValues(i int) *ChannelSelect {
+	m.MinValues = &i
+	return m
+}
+
+func (m *ChannelSelect) SetMaxValues(i int) *ChannelSelect {
+	m.MaxValues = i
+	return m
+}
+
+func (m *ChannelSelect) SetPlaceholder(placeholder string) *ChannelSelect {
+	m.Placeholder = placeholder
+	return m
+}
+
+func (m *ChannelSelect) AddDefault(id string) *ChannelSelect {
+	if m.DefaultValues == nil {
+		m.DefaultValues = []discordgo.SelectMenuDefaultValue{}
+	}
+	m.DefaultValues = append(m.DefaultValues, discordgo.SelectMenuDefaultValue{ID: id, Type: discordgo.SelectMenuDefaultValueChannel})
+	return m
+}
+
+func (m *ChannelSelect) AddChannelType(tp discordgo.ChannelType) *ChannelSelect {
+	if m.ChannelTypes == nil {
+		m.ChannelTypes = []discordgo.ChannelType{}
+	}
+	m.ChannelTypes = append(m.ChannelTypes, tp)
+	return m
+}
