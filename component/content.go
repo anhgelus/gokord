@@ -38,13 +38,15 @@ func (s *Section) SetAccessory(accessory Accessory) *Section {
 	return s
 }
 
-func (s *Section) AddComponent(sub Sub) *Section {
+func (s *Section) Add(sub Sub) *Section {
 	if s.components == nil {
 		s.components = make([]Sub, len(s.components))
 	}
 	s.components = append(s.components, sub)
 	return s
 }
+
+func (s *Section) subContainer() {}
 
 type TextDisplay struct {
 	discordgo.TextDisplay
@@ -70,6 +72,8 @@ func (t *TextDisplay) SetContent(s string) *TextDisplay {
 	t.Content = s
 	return t
 }
+
+func (s *TextDisplay) subContainer() {}
 
 type Thumbnail struct {
 	discordgo.Thumbnail
@@ -131,7 +135,7 @@ func (m *MediaGallery) SetID(i int) Sub {
 	return m
 }
 
-func (m *MediaGallery) AddItem(url string, description string, spoiler bool) *MediaGallery {
+func (m *MediaGallery) Add(url string, description string, spoiler bool) *MediaGallery {
 	if m.Items == nil {
 		m.Items = []discordgo.MediaGalleryItem{}
 	}
@@ -147,34 +151,89 @@ func (m *MediaGallery) AddItem(url string, description string, spoiler bool) *Me
 	return m
 }
 
+func (m *MediaGallery) subContainer() {}
+
 type File struct {
 	discordgo.FileComponent
 }
 
-func (t *File) Component() discordgo.MessageComponent {
-	return t.FileComponent
+func (f *File) Component() discordgo.MessageComponent {
+	return f.FileComponent
 }
 
-func (t *File) IsForModal() bool {
+func (f *File) IsForModal() bool {
 	return false
 }
 
-func (t *File) CanBeInContainer() bool {
+func (f *File) CanBeInContainer() bool {
 	return true
 }
 
-func (t *File) SetID(i int) Sub {
-	t.ID = i
-	return t
+func (f *File) SetID(i int) Sub {
+	f.ID = i
+	return f
 }
 
-func (t *File) IsSpoiler() *File {
-	t.Spoiler = true
-	return t
+func (f *File) IsSpoiler() *File {
+	f.Spoiler = true
+	return f
 }
 
 // SetFile takes an URL
-func (t *File) SetFile(s string) *File {
-	t.File = discordgo.UnfurledMediaItem{URL: s}
-	return t
+func (f *File) SetFile(s string) *File {
+	f.File = discordgo.UnfurledMediaItem{URL: s}
+	return f
+}
+
+func (f *File) subContainer() {}
+
+type Container struct {
+	components  []SubContainer
+	id          int
+	accentColor *int
+	spoiler     bool
+}
+
+func (c *Container) Component() discordgo.MessageComponent {
+	cp := make([]discordgo.MessageComponent, len(c.components))
+	for i, c := range c.components {
+		cp[i] = c.Component()
+	}
+	return discordgo.Container{
+		Components:  cp,
+		ID:          c.id,
+		AccentColor: c.accentColor,
+		Spoiler:     c.spoiler,
+	}
+}
+
+func (c *Container) IsForModal() bool {
+	return false
+}
+
+func (c *Container) CanBeInContainer() bool {
+	return true
+}
+
+func (c *Container) SetID(i int) Sub {
+	c.id = i
+	return c
+}
+
+func (c *Container) IsSpoiler() *Container {
+	c.spoiler = true
+	return c
+}
+
+func (c *Container) SetAccentColor(i int) *Container {
+	c.accentColor = &i
+	return c
+}
+
+func (c *Container) Add(s SubContainer) *Container {
+	if c.components == nil {
+		c.components = []SubContainer{}
+	}
+	c.components = append(c.components, s)
+	return c
 }

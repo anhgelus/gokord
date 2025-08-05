@@ -2,7 +2,7 @@ package component
 
 import "github.com/bwmarrin/discordgo"
 
-type Container interface {
+type GeneralContainer interface {
 	Add(Sub)
 	Components() []discordgo.MessageComponent
 	ForModal()
@@ -29,6 +29,14 @@ type Accessory interface {
 	CanBeInContainer() bool // must be false
 	SetID(int) Sub
 	accessory() // does nothing
+}
+
+type SubContainer interface {
+	Component() discordgo.MessageComponent
+	IsForModal() bool
+	CanBeInContainer() bool // must be false
+	SetID(int) Sub
+	subContainer() // does nothing
 }
 
 type containerBuilder struct {
@@ -64,6 +72,6 @@ func (b *containerBuilder) ForModal() {
 	b.modal = true
 }
 
-func NewContainer() Container {
+func NewContainer() GeneralContainer {
 	return &containerBuilder{}
 }

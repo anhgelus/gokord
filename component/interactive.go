@@ -48,6 +48,8 @@ func (a *ActionRow) ForModal() {
 	a.modal = true
 }
 
+func (a *ActionRow) subContainer() {}
+
 type Button struct {
 	*discordgo.Button
 }
