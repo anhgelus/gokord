@@ -18,7 +18,8 @@ type Interactive interface {
 	Component() discordgo.MessageComponent
 	IsForModal() bool
 	CanBeInContainer() bool // must be false
-	interactive()           // does nothing
+	SetCustomID(string) Interactive
+	SetID(int) Interactive
 }
 
 type Accessory interface {
@@ -55,6 +56,9 @@ func (b *containerBuilder) Components() []discordgo.MessageComponent {
 }
 
 func (b *containerBuilder) ForModal() {
+	if len(b.subs) != 0 {
+		panic("Cannot set for modal if subs are not empty")
+	}
 	b.modal = true
 }
 
