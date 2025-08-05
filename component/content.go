@@ -146,3 +146,35 @@ func (m *MediaGallery) AddItem(url string, description string, spoiler bool) *Me
 	m.Items = append(m.Items, item)
 	return m
 }
+
+type File struct {
+	discordgo.FileComponent
+}
+
+func (t *File) Component() discordgo.MessageComponent {
+	return t.FileComponent
+}
+
+func (t *File) IsForModal() bool {
+	return false
+}
+
+func (t *File) CanBeInContainer() bool {
+	return true
+}
+
+func (t *File) SetID(i int) Sub {
+	t.ID = i
+	return t
+}
+
+func (t *File) IsSpoiler() *File {
+	t.Spoiler = true
+	return t
+}
+
+// SetFile takes an URL
+func (t *File) SetFile(s string) *File {
+	t.File = discordgo.UnfurledMediaItem{URL: s}
+	return t
+}
