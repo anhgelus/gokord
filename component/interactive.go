@@ -244,6 +244,7 @@ type UserSelect struct {
 }
 
 func (u *UserSelect) Component() discordgo.MessageComponent {
+	u.MenuType = discordgo.UserSelectMenu
 	return u.SelectMenu
 }
 
@@ -285,10 +286,120 @@ func (u *UserSelect) SetPlaceholder(placeholder string) *UserSelect {
 	return u
 }
 
-func (u *UserSelect) AddDefault(id string, tp discordgo.SelectMenuDefaultValueType) *UserSelect {
+func (u *UserSelect) AddDefault(id string) *UserSelect {
 	if u.DefaultValues == nil {
 		u.DefaultValues = []discordgo.SelectMenuDefaultValue{}
 	}
-	u.DefaultValues = append(u.DefaultValues, discordgo.SelectMenuDefaultValue{ID: id, Type: tp})
+	u.DefaultValues = append(u.DefaultValues, discordgo.SelectMenuDefaultValue{ID: id, Type: discordgo.SelectMenuDefaultValueUser})
 	return u
+}
+
+type RoleSelect struct {
+	discordgo.SelectMenu
+}
+
+func (r *RoleSelect) Component() discordgo.MessageComponent {
+	r.MenuType = discordgo.RoleSelectMenu
+	return r.SelectMenu
+}
+
+func (r *RoleSelect) IsForModal() bool {
+	return false
+}
+
+func (r *RoleSelect) CanBeInContainer() bool {
+	return false
+}
+
+func (r *RoleSelect) SetCustomID(s string) Interactive {
+	r.CustomID = s
+	return r
+}
+
+func (r *RoleSelect) SetID(i int) Interactive {
+	r.ID = i
+	return r
+}
+
+func (r *RoleSelect) IsDisabled() *RoleSelect {
+	r.Disabled = true
+	return r
+}
+
+func (r *RoleSelect) SetMinValues(i int) *RoleSelect {
+	r.MinValues = &i
+	return r
+}
+
+func (r *RoleSelect) SetMaxValues(i int) *RoleSelect {
+	r.MaxValues = i
+	return r
+}
+
+func (r *RoleSelect) SetPlaceholder(placeholder string) *RoleSelect {
+	r.Placeholder = placeholder
+	return r
+}
+
+func (r *RoleSelect) AddDefault(id string) *RoleSelect {
+	if r.DefaultValues == nil {
+		r.DefaultValues = []discordgo.SelectMenuDefaultValue{}
+	}
+	r.DefaultValues = append(r.DefaultValues, discordgo.SelectMenuDefaultValue{ID: id, Type: discordgo.SelectMenuDefaultValueRole})
+	return r
+}
+
+type MentionableSelect struct {
+	discordgo.SelectMenu
+}
+
+func (m *MentionableSelect) Component() discordgo.MessageComponent {
+	m.MenuType = discordgo.MentionableSelectMenu
+	return m.SelectMenu
+}
+
+func (m *MentionableSelect) IsForModal() bool {
+	return false
+}
+
+func (m *MentionableSelect) CanBeInContainer() bool {
+	return false
+}
+
+func (m *MentionableSelect) SetCustomID(s string) Interactive {
+	m.CustomID = s
+	return m
+}
+
+func (m *MentionableSelect) SetID(i int) Interactive {
+	m.ID = i
+	return m
+}
+
+func (m *MentionableSelect) IsDisabled() *MentionableSelect {
+	m.Disabled = true
+	return m
+}
+
+func (m *MentionableSelect) SetMinValues(i int) *MentionableSelect {
+	m.MinValues = &i
+	return m
+}
+
+func (m *MentionableSelect) SetMaxValues(i int) *MentionableSelect {
+	m.MaxValues = i
+	return m
+}
+
+func (m *MentionableSelect) SetPlaceholder(placeholder string) *MentionableSelect {
+	m.Placeholder = placeholder
+	return m
+}
+
+func (m *MentionableSelect) AddDefault(id string, tp discordgo.SelectMenuDefaultValueType) *MentionableSelect {
+	if m.DefaultValues == nil {
+		m.DefaultValues = []discordgo.SelectMenuDefaultValue{}
+	}
+	m.DefaultValues = append(m.DefaultValues, discordgo.SelectMenuDefaultValue{ID: id, Type: tp})
+	return m
 }
