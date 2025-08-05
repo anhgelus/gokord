@@ -43,11 +43,11 @@ func (a *ActionRow) ForModal() {
 }
 
 type Button struct {
-	discordgo.Button
+	*discordgo.Button
 }
 
 func (b *Button) Component() discordgo.MessageComponent {
-	return b.Button
+	return b
 }
 
 func (b *Button) IsForModal() bool {
@@ -78,7 +78,7 @@ func (b *Button) SetStyle(s discordgo.ButtonStyle) *Button {
 	return b
 }
 
-func (b *Button) IsDisabled() *Button {
+func (b *Button) IsDisabled() Interactive {
 	b.Disabled = true
 	return b
 }
@@ -94,3 +94,86 @@ func (b *Button) SetURL(url string) *Button {
 }
 
 func (b *Button) accessory() {}
+
+type SelectOption struct {
+	discordgo.SelectMenuOption
+}
+
+func (s *SelectOption) SetDescription(desc string) *SelectOption {
+	s.Description = desc
+	return s
+}
+
+func (s *SelectOption) SetEmoji(e *discordgo.ComponentEmoji) *SelectOption {
+	s.Emoji = e
+	return s
+}
+
+func (s *SelectOption) IsDefault() *SelectOption {
+	s.Default = true
+	return s
+}
+
+func NewSelectOption(label string, value string) *SelectOption {
+	return &SelectOption{
+		SelectMenuOption: discordgo.SelectMenuOption{
+			Label: label,
+			Value: value,
+		},
+	}
+}
+
+type StringSelect struct {
+	*discordgo.SelectMenu
+}
+
+func (s *StringSelect) Component() discordgo.MessageComponent {
+	s.MenuType = discordgo.StringSelectMenu
+	return s
+}
+
+func (s *StringSelect) IsForModal() bool {
+	return false
+}
+
+func (s *StringSelect) CanBeInContainer() bool {
+	return false
+}
+
+func (s *StringSelect) SetCustomID(id string) Interactive {
+	s.CustomID = id
+	return s
+}
+
+func (s *StringSelect) SetID(i int) Interactive {
+	s.ID = i
+	return s
+}
+
+func (s *StringSelect) IsDisabled() Interactive {
+	s.Disabled = true
+	return s
+}
+
+func (s *StringSelect) SetMinValues(i int) *StringSelect {
+	s.MinValues = &i
+	return s
+}
+
+func (s *StringSelect) SetMaxValues(i int) *StringSelect {
+	s.MaxValues = i
+	return s
+}
+
+func (s *StringSelect) SetPlaceholder(placeholder string) *StringSelect {
+	s.Placeholder = placeholder
+	return s
+}
+
+func (s *StringSelect) AddOption(opt *SelectOption) *StringSelect {
+	if s.Options == nil {
+		s.Options = []discordgo.SelectMenuOption{}
+	}
+	s.Options = append(s.Options, opt.SelectMenuOption)
+	return s
+}
