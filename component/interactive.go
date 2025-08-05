@@ -285,11 +285,10 @@ func (u *UserSelect) SetPlaceholder(placeholder string) *UserSelect {
 	return u
 }
 
-// discordgo does not seem to support this
-//func (u *UserSelect) AddOption(opt *SelectOption) *UserSelect {
-//	if u.Options == nil {
-//		u.Options = []discordgo.SelectMenuOption{}
-//	}
-//	u.Options = append(u.Options, opt.SelectMenuOption)
-//	return u
-//}
+func (u *UserSelect) AddDefault(id string, tp discordgo.SelectMenuDefaultValueType) *UserSelect {
+	if u.DefaultValues == nil {
+		u.DefaultValues = []discordgo.SelectMenuDefaultValue{}
+	}
+	u.DefaultValues = append(u.DefaultValues, discordgo.SelectMenuDefaultValue{ID: id, Type: tp})
+	return u
+}
