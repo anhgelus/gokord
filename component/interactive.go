@@ -7,11 +7,17 @@ import (
 type ActionRow struct {
 	subs  []Sub
 	modal bool
+	id    int
+}
+
+func (a *ActionRow) SetID(i int) Sub {
+	a.id = i
+	return a
 }
 
 func (a *ActionRow) Component() discordgo.MessageComponent {
 	return discordgo.ActionsRow{
-		Components: a.Components(),
+		Components: a.components(),
 	}
 }
 
@@ -27,7 +33,7 @@ func (a *ActionRow) Add(sub Sub) {
 	a.subs = append(a.subs, sub)
 }
 
-func (a *ActionRow) Components() []discordgo.MessageComponent {
+func (a *ActionRow) components() []discordgo.MessageComponent {
 	cp := make([]discordgo.MessageComponent, len(a.subs))
 	for i, sub := range a.subs {
 		cp[i] = sub.Component()
