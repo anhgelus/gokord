@@ -20,7 +20,6 @@ type Interactive interface {
 	CanBeInContainer() bool // must be false
 	SetCustomID(string) Interactive
 	SetID(int) Interactive
-	IsDisabled() Interactive
 }
 
 type Accessory interface {

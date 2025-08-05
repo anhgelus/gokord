@@ -47,7 +47,7 @@ type Button struct {
 }
 
 func (b *Button) Component() discordgo.MessageComponent {
-	return b
+	return b.Button
 }
 
 func (b *Button) IsForModal() bool {
@@ -78,7 +78,7 @@ func (b *Button) SetStyle(s discordgo.ButtonStyle) *Button {
 	return b
 }
 
-func (b *Button) IsDisabled() Interactive {
+func (b *Button) IsDisabled() *Button {
 	b.Disabled = true
 	return b
 }
@@ -129,7 +129,7 @@ type StringSelect struct {
 
 func (s *StringSelect) Component() discordgo.MessageComponent {
 	s.MenuType = discordgo.StringSelectMenu
-	return s
+	return s.SelectMenu
 }
 
 func (s *StringSelect) IsForModal() bool {
@@ -150,7 +150,7 @@ func (s *StringSelect) SetID(i int) Interactive {
 	return s
 }
 
-func (s *StringSelect) IsDisabled() Interactive {
+func (s *StringSelect) IsDisabled() *StringSelect {
 	s.Disabled = true
 	return s
 }
@@ -176,4 +176,65 @@ func (s *StringSelect) AddOption(opt *SelectOption) *StringSelect {
 	}
 	s.Options = append(s.Options, opt.SelectMenuOption)
 	return s
+}
+
+type TextInput struct {
+	*discordgo.TextInput
+}
+
+func (t *TextInput) Component() discordgo.MessageComponent {
+	return t.TextInput
+}
+
+func (t *TextInput) IsForModal() bool {
+	return true
+}
+
+func (t *TextInput) CanBeInContainer() bool {
+	return false
+}
+
+func (t *TextInput) SetCustomID(s string) Interactive {
+	t.CustomID = s
+	return t
+}
+
+func (t *TextInput) SetID(i int) Interactive {
+	t.ID = i
+	return t
+}
+
+func (t *TextInput) SetStyle(s discordgo.TextInputStyle) *TextInput {
+	t.Style = s
+	return t
+}
+
+func (t *TextInput) SetMinLength(i int) *TextInput {
+	t.MinLength = i
+	return t
+}
+
+func (t *TextInput) SetMaxLength(i int) *TextInput {
+	t.MaxLength = i
+	return t
+}
+
+func (t *TextInput) SetLabel(s string) *TextInput {
+	t.Label = s
+	return t
+}
+
+func (t *TextInput) IsRequired() *TextInput {
+	t.Required = true
+	return t
+}
+
+func (t *TextInput) SetPlaceholder(placeholder string) *TextInput {
+	t.Placeholder = placeholder
+	return t
+}
+
+func (t *TextInput) SetValue(v string) *TextInput {
+	t.Value = v
+	return t
 }
