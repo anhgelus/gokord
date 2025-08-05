@@ -187,6 +187,39 @@ func (f *File) SetFile(s string) *File {
 
 func (f *File) subContainer() {}
 
+type Separator struct {
+	discordgo.Separator
+}
+
+func (s *Separator) Component() discordgo.MessageComponent {
+	return s.Separator
+}
+
+func (s *Separator) IsForModal() bool {
+	return false
+}
+
+func (s *Separator) CanBeInContainer() bool {
+	return true
+}
+
+func (s *Separator) SetID(i int) Sub {
+	s.ID = i
+	return s
+}
+
+func (s *Separator) SetDivider(b bool) *Separator {
+	s.Divider = &b
+	return s
+}
+
+func (s *Separator) SetSpacing(sp discordgo.SeparatorSpacingSize) *Separator {
+	s.Spacing = &sp
+	return s
+}
+
+func (s *Separator) subContainer() {}
+
 type Container struct {
 	components  []SubContainer
 	id          int
