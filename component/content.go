@@ -109,3 +109,40 @@ func (t *Thumbnail) SetMedia(s string) *Thumbnail {
 }
 
 func (t *Thumbnail) accessory() {}
+
+type MediaGallery struct {
+	discordgo.MediaGallery
+}
+
+func (m *MediaGallery) Component() discordgo.MessageComponent {
+	return m.MediaGallery
+}
+
+func (m *MediaGallery) IsForModal() bool {
+	return false
+}
+
+func (m *MediaGallery) CanBeInContainer() bool {
+	return true
+}
+
+func (m *MediaGallery) SetID(i int) Sub {
+	m.ID = i
+	return m
+}
+
+func (m *MediaGallery) AddItem(url string, description string, spoiler bool) *MediaGallery {
+	if m.Items == nil {
+		m.Items = []discordgo.MediaGalleryItem{}
+	}
+	item := discordgo.MediaGalleryItem{
+		Media:       discordgo.UnfurledMediaItem{URL: url},
+		Description: &description,
+		Spoiler:     spoiler,
+	}
+	if len(description) == 0 {
+		item.Description = nil
+	}
+	m.Items = append(m.Items, item)
+	return m
+}
