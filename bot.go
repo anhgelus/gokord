@@ -80,11 +80,12 @@ func (b *Bot) Start() {
 	}()
 	b.setupCommandsHandlers(dg)
 
-	// do after init (mainly used to register handlers)
 	for _, handler := range b.handlers {
 		dg.AddHandler(handler)
 	}
-	b.AfterInit(dg)
+	if b.AfterInit != nil {
+		b.AfterInit(dg)
+	}
 
 	// wait until all setup goroutines are finished
 	wg.Wait()
