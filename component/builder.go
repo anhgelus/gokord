@@ -72,6 +72,6 @@ func (b *containerBuilder) ForModal() {
 	b.modal = true
 }
 
-func NewContainer() GeneralContainer {
+func New() GeneralContainer {
 	return &containerBuilder{}
 }
