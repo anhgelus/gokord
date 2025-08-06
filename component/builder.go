@@ -42,6 +42,13 @@ type SubContainer interface {
 	subContainer() // does nothing
 }
 
+type SubSection interface {
+	Component() discordgo.MessageComponent
+	IsForModal() bool
+	SetID(int) Sub
+	subSection() // does nothing
+}
+
 type containerBuilder struct {
 	subs  []TopLevel
 	modal bool

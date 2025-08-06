@@ -3,7 +3,7 @@ package component
 import "github.com/bwmarrin/discordgo"
 
 type Section struct {
-	components []Sub
+	components []SubSection
 	accessory  Accessory
 	id         int
 }
@@ -34,9 +34,9 @@ func (s *Section) SetAccessory(accessory Accessory) *Section {
 	return s
 }
 
-func (s *Section) Add(sub Sub) *Section {
+func (s *Section) Add(sub SubSection) *Section {
 	if s.components == nil {
-		s.components = make([]Sub, len(s.components))
+		s.components = []SubSection{}
 	}
 	s.components = append(s.components, sub)
 	return s
@@ -74,6 +74,8 @@ func (t *TextDisplay) SetContent(s string) *TextDisplay {
 func (t *TextDisplay) subContainer() {}
 
 func (t *TextDisplay) isTopLevel() {}
+
+func (t *TextDisplay) subSection() {}
 
 func NewTextDisplay(content string) *TextDisplay {
 	return new(TextDisplay).SetContent(content)
