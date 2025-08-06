@@ -29,10 +29,6 @@ func (a *ActionRow) IsForModal() bool {
 	return a.modal
 }
 
-func (a *ActionRow) CanBeInContainer() bool {
-	return true
-}
-
 func (a *ActionRow) Add(sub Sub) *ActionRow {
 	a.subs = append(a.subs, sub)
 	return a
@@ -47,6 +43,8 @@ func (a *ActionRow) ForModal() {
 
 func (a *ActionRow) subContainer() {}
 
+func (a *ActionRow) isTopLevel() {}
+
 func NewActionRow() *ActionRow {
 	return new(ActionRow)
 }
@@ -60,10 +58,6 @@ func (b *Button) Component() discordgo.MessageComponent {
 }
 
 func (b *Button) IsForModal() bool {
-	return false
-}
-
-func (b *Button) CanBeInContainer() bool {
 	return false
 }
 
@@ -151,10 +145,6 @@ func (s *StringSelect) IsForModal() bool {
 	return false
 }
 
-func (s *StringSelect) CanBeInContainer() bool {
-	return false
-}
-
 func (s *StringSelect) SetCustomID(id string) Interactive {
 	s.CustomID = id
 	return s
@@ -209,10 +199,6 @@ func (t *TextInput) Component() discordgo.MessageComponent {
 
 func (t *TextInput) IsForModal() bool {
 	return true
-}
-
-func (t *TextInput) CanBeInContainer() bool {
-	return false
 }
 
 func (t *TextInput) SetCustomID(s string) Interactive {
@@ -279,10 +265,6 @@ func (u *UserSelect) IsForModal() bool {
 	return false
 }
 
-func (u *UserSelect) CanBeInContainer() bool {
-	return false
-}
-
 func (u *UserSelect) SetCustomID(s string) Interactive {
 	u.CustomID = s
 	return u
@@ -337,10 +319,6 @@ func (r *RoleSelect) Component() discordgo.MessageComponent {
 }
 
 func (r *RoleSelect) IsForModal() bool {
-	return false
-}
-
-func (r *RoleSelect) CanBeInContainer() bool {
 	return false
 }
 
@@ -401,10 +379,6 @@ func (m *MentionableSelect) IsForModal() bool {
 	return false
 }
 
-func (m *MentionableSelect) CanBeInContainer() bool {
-	return false
-}
-
 func (m *MentionableSelect) SetCustomID(s string) Interactive {
 	m.CustomID = s
 	return m
@@ -459,10 +433,6 @@ func (m *ChannelSelect) Component() discordgo.MessageComponent {
 }
 
 func (m *ChannelSelect) IsForModal() bool {
-	return false
-}
-
-func (m *ChannelSelect) CanBeInContainer() bool {
 	return false
 }
 

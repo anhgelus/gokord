@@ -29,10 +29,6 @@ func (s *Section) IsForModal() bool {
 	return false
 }
 
-func (s *Section) CanBeInContainer() bool {
-	return true
-}
-
 func (s *Section) SetAccessory(accessory Accessory) *Section {
 	s.accessory = accessory
 	return s
@@ -47,6 +43,8 @@ func (s *Section) Add(sub Sub) *Section {
 }
 
 func (s *Section) subContainer() {}
+
+func (s *Section) isTopLevel() {}
 
 func NewSection() *Section {
 	return new(Section)
@@ -64,10 +62,6 @@ func (t *TextDisplay) IsForModal() bool {
 	return false
 }
 
-func (t *TextDisplay) CanBeInContainer() bool {
-	return true
-}
-
 func (t *TextDisplay) SetID(i int) Sub {
 	panic("Missing ID in discordgo.TextDisplay. gokord cannot fix this")
 }
@@ -78,6 +72,8 @@ func (t *TextDisplay) SetContent(s string) *TextDisplay {
 }
 
 func (t *TextDisplay) subContainer() {}
+
+func (t *TextDisplay) isTopLevel() {}
 
 func NewTextDisplay(content string) *TextDisplay {
 	return new(TextDisplay).SetContent(content)
@@ -92,10 +88,6 @@ func (t *Thumbnail) Component() discordgo.MessageComponent {
 }
 
 func (t *Thumbnail) IsForModal() bool {
-	return false
-}
-
-func (t *Thumbnail) CanBeInContainer() bool {
 	return false
 }
 
@@ -139,10 +131,6 @@ func (m *MediaGallery) IsForModal() bool {
 	return false
 }
 
-func (m *MediaGallery) CanBeInContainer() bool {
-	return true
-}
-
 func (m *MediaGallery) SetID(i int) Sub {
 	m.ID = i
 	return m
@@ -166,6 +154,8 @@ func (m *MediaGallery) Add(url string, description string, spoiler bool) *MediaG
 
 func (m *MediaGallery) subContainer() {}
 
+func (m *MediaGallery) isTopLevel() {}
+
 func NewMediaGallery() *MediaGallery {
 	return new(MediaGallery)
 }
@@ -180,10 +170,6 @@ func (f *File) Component() discordgo.MessageComponent {
 
 func (f *File) IsForModal() bool {
 	return false
-}
-
-func (f *File) CanBeInContainer() bool {
-	return true
 }
 
 func (f *File) SetID(i int) Sub {
@@ -204,6 +190,8 @@ func (f *File) SetFile(s string) *File {
 
 func (f *File) subContainer() {}
 
+func (f *File) isTopLevel() {}
+
 // NewFile takes a URL as a media
 func NewFile(media string) *File {
 	return new(File).SetFile(media)
@@ -219,10 +207,6 @@ func (s *Separator) Component() discordgo.MessageComponent {
 
 func (s *Separator) IsForModal() bool {
 	return false
-}
-
-func (s *Separator) CanBeInContainer() bool {
-	return true
 }
 
 func (s *Separator) SetID(i int) Sub {
@@ -242,6 +226,8 @@ func (s *Separator) SetSpacing(sp discordgo.SeparatorSpacingSize) *Separator {
 }
 
 func (s *Separator) subContainer() {}
+
+func (s *Separator) isTopLevel() {}
 
 func NewSeparator() *Separator {
 	s := new(Separator)
@@ -274,10 +260,6 @@ func (c *Container) IsForModal() bool {
 	return false
 }
 
-func (c *Container) CanBeInContainer() bool {
-	return true
-}
-
 func (c *Container) SetID(i int) Sub {
 	c.id = i
 	return c
@@ -300,6 +282,8 @@ func (c *Container) Add(s SubContainer) *Container {
 	c.components = append(c.components, s)
 	return c
 }
+
+func (c *Container) isTopLevel() {}
 
 func NewContainer() *Container {
 	return new(Container)

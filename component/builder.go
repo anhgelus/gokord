@@ -3,7 +3,7 @@ package component
 import "github.com/bwmarrin/discordgo"
 
 type GeneralContainer interface {
-	Add(Sub) GeneralContainer
+	Add(TopLevel) GeneralContainer
 	Components() []discordgo.MessageComponent
 	ForModal() GeneralContainer
 }
@@ -11,14 +11,19 @@ type GeneralContainer interface {
 type Sub interface {
 	Component() discordgo.MessageComponent
 	IsForModal() bool
-	CanBeInContainer() bool
 	SetID(int) Sub
+}
+
+type TopLevel interface {
+	Component() discordgo.MessageComponent
+	IsForModal() bool
+	SetID(int) Sub
+	isTopLevel()
 }
 
 type Interactive interface {
 	Component() discordgo.MessageComponent
 	IsForModal() bool
-	CanBeInContainer() bool // must be false
 	SetID(int) Sub
 	SetCustomID(string) Interactive
 }
@@ -26,7 +31,6 @@ type Interactive interface {
 type Accessory interface {
 	Component() discordgo.MessageComponent
 	IsForModal() bool
-	CanBeInContainer() bool // must be false
 	SetID(int) Sub
 	accessory() // does nothing
 }
@@ -34,27 +38,23 @@ type Accessory interface {
 type SubContainer interface {
 	Component() discordgo.MessageComponent
 	IsForModal() bool
-	CanBeInContainer() bool // must be false
 	SetID(int) Sub
 	subContainer() // does nothing
 }
 
 type containerBuilder struct {
-	subs  []Sub
+	subs  []TopLevel
 	modal bool
 }
 
-func (b *containerBuilder) Add(sub Sub) GeneralContainer {
-	if sub.CanBeInContainer() {
-		panic("Sub component cannot be directly added in container")
-	}
-	if b.modal != sub.IsForModal() {
+func (b *containerBuilder) Add(t TopLevel) GeneralContainer {
+	if b.modal != t.IsForModal() {
 		if b.modal {
 			panic("Sub component cannot be added for a modal component")
 		}
 		panic("Sub component cannot be added for a message component")
 	}
-	b.subs = append(b.subs, sub)
+	b.subs = append(b.subs, t)
 	return b
 }
 
@@ -75,5 +75,5 @@ func (b *containerBuilder) ForModal() GeneralContainer {
 }
 
 func New() GeneralContainer {
-	return &containerBuilder{}
+	return new(containerBuilder)
 }
