@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/anhgelus/gokord/component"
 	"github.com/bwmarrin/discordgo"
 	"time"
 )
@@ -178,11 +179,7 @@ func (res *ResponseBuilder) AddFile(f *discordgo.File) *ResponseBuilder {
 	return res
 }
 
-func (res *ResponseBuilder) AddComponent(c discordgo.MessageComponent) *ResponseBuilder {
-	if res.components == nil {
-		res.components = []discordgo.MessageComponent{c}
-	} else {
-		res.components = append(res.components, c)
-	}
+func (res *ResponseBuilder) SetComponents(c component.GeneralContainer) *ResponseBuilder {
+	res.components = c.Components()
 	return res
 }
