@@ -5,7 +5,7 @@ import "github.com/bwmarrin/discordgo"
 type GeneralContainer interface {
 	Add(Sub) GeneralContainer
 	Components() []discordgo.MessageComponent
-	ForModal()
+	ForModal() GeneralContainer
 }
 
 type Sub interface {
@@ -66,11 +66,12 @@ func (b *containerBuilder) Components() []discordgo.MessageComponent {
 	return cp
 }
 
-func (b *containerBuilder) ForModal() {
+func (b *containerBuilder) ForModal() GeneralContainer {
 	if len(b.subs) != 0 {
 		panic("Cannot set for modal if subs are not empty")
 	}
 	b.modal = true
+	return b
 }
 
 func New() GeneralContainer {
