@@ -47,6 +47,10 @@ func (a *ActionRow) ForModal() {
 
 func (a *ActionRow) subContainer() {}
 
+func NewActionRow() *ActionRow {
+	return new(ActionRow)
+}
+
 type Button struct {
 	*discordgo.Button
 }
@@ -99,6 +103,12 @@ func (b *Button) SetURL(url string) *Button {
 }
 
 func (b *Button) accessory() {}
+
+func NewButton(customID string, style discordgo.ButtonStyle) *Button {
+	b := new(Button)
+	b.SetCustomID(customID)
+	return b.SetStyle(style)
+}
 
 type SelectOption struct {
 	discordgo.SelectMenuOption
@@ -183,6 +193,12 @@ func (s *StringSelect) AddOption(opt *SelectOption) *StringSelect {
 	return s
 }
 
+func NewStringSelect(customID string) *StringSelect {
+	s := new(StringSelect)
+	s.SetCustomID(customID)
+	return s.SetMinValues(1).SetMaxValues(1)
+}
+
 type TextInput struct {
 	*discordgo.TextInput
 }
@@ -244,6 +260,12 @@ func (t *TextInput) SetValue(v string) *TextInput {
 	return t
 }
 
+func NewTextInput(customID string, label string, style discordgo.TextInputStyle) *TextInput {
+	t := new(TextInput)
+	t.SetCustomID(customID)
+	return t.SetLabel(label).SetStyle(style)
+}
+
 type UserSelect struct {
 	discordgo.SelectMenu
 }
@@ -297,6 +319,12 @@ func (u *UserSelect) AddDefault(id string) *UserSelect {
 	}
 	u.DefaultValues = append(u.DefaultValues, discordgo.SelectMenuDefaultValue{ID: id, Type: discordgo.SelectMenuDefaultValueUser})
 	return u
+}
+
+func NewUserSelect(customID string) *UserSelect {
+	u := new(UserSelect)
+	u.SetCustomID(customID)
+	return u.SetMinValues(1).SetMaxValues(1)
 }
 
 type RoleSelect struct {
@@ -354,6 +382,12 @@ func (r *RoleSelect) AddDefault(id string) *RoleSelect {
 	return r
 }
 
+func NewRoleSelect(customID string) *RoleSelect {
+	u := new(RoleSelect)
+	u.SetCustomID(customID)
+	return u.SetMinValues(1).SetMaxValues(1)
+}
+
 type MentionableSelect struct {
 	discordgo.SelectMenu
 }
@@ -407,6 +441,12 @@ func (m *MentionableSelect) AddDefault(id string, tp discordgo.SelectMenuDefault
 	}
 	m.DefaultValues = append(m.DefaultValues, discordgo.SelectMenuDefaultValue{ID: id, Type: tp})
 	return m
+}
+
+func NewMentionableSelect(customID string) *MentionableSelect {
+	u := new(MentionableSelect)
+	u.SetCustomID(customID)
+	return u.SetMinValues(1).SetMaxValues(1)
 }
 
 type ChannelSelect struct {
@@ -470,4 +510,10 @@ func (m *ChannelSelect) AddChannelType(tp discordgo.ChannelType) *ChannelSelect 
 	}
 	m.ChannelTypes = append(m.ChannelTypes, tp)
 	return m
+}
+
+func NewChannelSelect(customID string) *ChannelSelect {
+	u := new(ChannelSelect)
+	u.SetCustomID(customID)
+	return u.SetMinValues(1).SetMaxValues(1)
 }

@@ -48,6 +48,10 @@ func (s *Section) Add(sub Sub) *Section {
 
 func (s *Section) subContainer() {}
 
+func NewSection() *Section {
+	return new(Section)
+}
+
 type TextDisplay struct {
 	discordgo.TextDisplay
 }
@@ -73,7 +77,11 @@ func (t *TextDisplay) SetContent(s string) *TextDisplay {
 	return t
 }
 
-func (s *TextDisplay) subContainer() {}
+func (t *TextDisplay) subContainer() {}
+
+func NewTextDisplay(content string) *TextDisplay {
+	return new(TextDisplay).SetContent(content)
+}
 
 type Thumbnail struct {
 	discordgo.Thumbnail
@@ -114,6 +122,11 @@ func (t *Thumbnail) SetMedia(s string) *Thumbnail {
 
 func (t *Thumbnail) accessory() {}
 
+// NewThumbnail takes a URL as a media
+func NewThumbnail(media string) *Thumbnail {
+	return new(Thumbnail).SetMedia(media)
+}
+
 type MediaGallery struct {
 	discordgo.MediaGallery
 }
@@ -153,6 +166,10 @@ func (m *MediaGallery) Add(url string, description string, spoiler bool) *MediaG
 
 func (m *MediaGallery) subContainer() {}
 
+func NewMediaGallery() *MediaGallery {
+	return new(MediaGallery)
+}
+
 type File struct {
 	discordgo.FileComponent
 }
@@ -187,6 +204,11 @@ func (f *File) SetFile(s string) *File {
 
 func (f *File) subContainer() {}
 
+// NewFile takes a URL as a media
+func NewFile(media string) *File {
+	return new(File).SetFile(media)
+}
+
 type Separator struct {
 	discordgo.Separator
 }
@@ -208,7 +230,8 @@ func (s *Separator) SetID(i int) Sub {
 	return s
 }
 
-func (s *Separator) SetDivider(b bool) *Separator {
+func (s *Separator) IsNotDivider() *Separator {
+	b := false
 	s.Divider = &b
 	return s
 }
@@ -219,6 +242,13 @@ func (s *Separator) SetSpacing(sp discordgo.SeparatorSpacingSize) *Separator {
 }
 
 func (s *Separator) subContainer() {}
+
+func NewSeparator() *Separator {
+	s := new(Separator)
+	b := true
+	s.Divider = &b
+	return s.SetSpacing(discordgo.SeparatorSpacingSizeSmall)
+}
 
 type Container struct {
 	components  []SubContainer
@@ -269,4 +299,8 @@ func (c *Container) Add(s SubContainer) *Container {
 	}
 	c.components = append(c.components, s)
 	return c
+}
+
+func NewContainer() *Container {
+	return new(Container)
 }
