@@ -16,8 +16,12 @@ func (a *ActionRow) SetID(i int) Sub {
 }
 
 func (a *ActionRow) Component() discordgo.MessageComponent {
+	cp := make([]discordgo.MessageComponent, len(a.subs))
+	for i, sub := range a.subs {
+		cp[i] = sub.Component()
+	}
 	return discordgo.ActionsRow{
-		Components: a.components(),
+		Components: cp,
 	}
 }
 
@@ -29,16 +33,9 @@ func (a *ActionRow) CanBeInContainer() bool {
 	return true
 }
 
-func (a *ActionRow) Add(sub Sub) {
+func (a *ActionRow) Add(sub Sub) *ActionRow {
 	a.subs = append(a.subs, sub)
-}
-
-func (a *ActionRow) components() []discordgo.MessageComponent {
-	cp := make([]discordgo.MessageComponent, len(a.subs))
-	for i, sub := range a.subs {
-		cp[i] = sub.Component()
-	}
-	return cp
+	return a
 }
 
 func (a *ActionRow) ForModal() {

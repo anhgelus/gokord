@@ -3,7 +3,7 @@ package component
 import "github.com/bwmarrin/discordgo"
 
 type GeneralContainer interface {
-	Add(Sub)
+	Add(Sub) GeneralContainer
 	Components() []discordgo.MessageComponent
 	ForModal()
 }
@@ -44,7 +44,7 @@ type containerBuilder struct {
 	modal bool
 }
 
-func (b *containerBuilder) Add(sub Sub) {
+func (b *containerBuilder) Add(sub Sub) GeneralContainer {
 	if sub.CanBeInContainer() {
 		panic("Sub component cannot be directly added in container")
 	}
@@ -55,6 +55,7 @@ func (b *containerBuilder) Add(sub Sub) {
 		panic("Sub component cannot be added for a message component")
 	}
 	b.subs = append(b.subs, sub)
+	return b
 }
 
 func (b *containerBuilder) Components() []discordgo.MessageComponent {
