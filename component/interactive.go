@@ -50,7 +50,7 @@ func NewActionRow() *ActionRow {
 }
 
 type Button struct {
-	*discordgo.Button
+	discordgo.Button
 }
 
 func (b *Button) Component() discordgo.MessageComponent {
@@ -133,7 +133,7 @@ func NewSelectOption(label string, value string) *SelectOption {
 }
 
 type StringSelect struct {
-	*discordgo.SelectMenu
+	discordgo.SelectMenu
 }
 
 func (s *StringSelect) Component() discordgo.MessageComponent {
@@ -190,7 +190,7 @@ func NewStringSelect(customID string) *StringSelect {
 }
 
 type TextInput struct {
-	*discordgo.TextInput
+	discordgo.TextInput
 }
 
 func (t *TextInput) Component() discordgo.MessageComponent {
