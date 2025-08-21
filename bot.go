@@ -1,17 +1,19 @@
 package gokord
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/anhgelus/gokord/cmd"
-	"github.com/anhgelus/gokord/logger"
-	"github.com/bwmarrin/discordgo"
 	"math/rand/v2"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/anhgelus/gokord/cmd"
+	"github.com/anhgelus/gokord/logger"
+	"github.com/bwmarrin/discordgo"
 )
 
 var (
@@ -83,6 +85,13 @@ func (b *Bot) Start() {
 	for _, handler := range b.handlers {
 		dg.AddHandler(handler)
 	}
+	if Debug {
+		dg.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			logger.Debug("Interaction received")
+			data, _ := json.Marshal(i)
+			logger.Debug(string(data))
+		})
+	}
 	if b.AfterInit != nil {
 		b.AfterInit(dg)
 	}
@@ -151,7 +160,7 @@ func (b *Bot) AddHandler(handler any) {
 
 func (b *Bot) HandleModal(handler func(*discordgo.Session, *discordgo.InteractionCreate, discordgo.ModalSubmitInteractionData, *cmd.ResponseBuilder),
 	id string) {
-	b.handlers = append(b.handlers, func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	b.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if i.Type != discordgo.InteractionModalSubmit {
 			return
 		}
@@ -166,7 +175,7 @@ func (b *Bot) HandleModal(handler func(*discordgo.Session, *discordgo.Interactio
 
 func (b *Bot) HandleMessageComponent(handler func(*discordgo.Session, *discordgo.InteractionCreate, discordgo.MessageComponentInteractionData, *cmd.ResponseBuilder),
 	id string) {
-	b.handlers = append(b.handlers, func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	b.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if i.Type != discordgo.InteractionMessageComponent {
 			return
 		}
