@@ -30,15 +30,22 @@ func (a *ActionRow) IsForModal() bool {
 }
 
 func (a *ActionRow) Add(sub Sub) *ActionRow {
+	if a.modal != sub.IsForModal() {
+		if a.modal {
+			panic("Component cannot be added for a modal component")
+		}
+		panic("Component cannot be added for a message component")
+	}
 	a.subs = append(a.subs, sub)
 	return a
 }
 
-func (a *ActionRow) ForModal() {
+func (a *ActionRow) ForModal() *ActionRow {
 	if len(a.subs) != 0 {
 		panic("Cannot set for modal if subs are not empty")
 	}
 	a.modal = true
+	return a
 }
 
 func (a *ActionRow) subContainer() {}

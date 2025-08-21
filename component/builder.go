@@ -57,9 +57,9 @@ type containerBuilder struct {
 func (b *containerBuilder) Add(t TopLevel) GeneralContainer {
 	if b.modal != t.IsForModal() {
 		if b.modal {
-			panic("Sub component cannot be added for a modal component")
+			panic("Top level component cannot be added for a modal component")
 		}
-		panic("Sub component cannot be added for a message component")
+		panic("Top level component cannot be added for a message component")
 	}
 	b.subs = append(b.subs, t)
 	return b
