@@ -1,6 +1,6 @@
 package component
 
-import "github.com/bwmarrin/discordgo"
+import discordgo "github.com/nyttikord/gokord"
 
 type Section struct {
 	components []SubSection

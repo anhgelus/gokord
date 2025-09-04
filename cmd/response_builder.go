@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/anhgelus/gokord/component"
-	"github.com/bwmarrin/discordgo"
+	discordgo "github.com/nyttikord/gokord"
 	"time"
 )
 

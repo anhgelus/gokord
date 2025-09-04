@@ -2,7 +2,7 @@ package gokord
 
 import (
 	"github.com/anhgelus/gokord/logger"
-	"github.com/bwmarrin/discordgo"
+	discordgo "github.com/nyttikord/gokord"
 	"strconv"
 	"time"
 )

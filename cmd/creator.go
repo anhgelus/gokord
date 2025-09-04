@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/anhgelus/gokord/logger"
-	"github.com/bwmarrin/discordgo"
+	discordgo "github.com/nyttikord/gokord"
 )
 
 // subCmd is for the internal use of the API

@@ -1,7 +1,7 @@
 package component
 
 import (
-	"github.com/bwmarrin/discordgo"
+	discordgo "github.com/nyttikord/gokord"
 )
 
 type ActionRow struct {

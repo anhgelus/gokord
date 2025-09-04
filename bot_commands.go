@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/anhgelus/gokord/cmd"
 	"github.com/anhgelus/gokord/logger"
-	"github.com/bwmarrin/discordgo"
+	discordgo "github.com/nyttikord/gokord"
 	"slices"
 	"sync"
 )

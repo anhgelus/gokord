@@ -1,6 +1,6 @@
 package cmd
 
-import "github.com/bwmarrin/discordgo"
+import discordgo "github.com/nyttikord/gokord"
 
 type OptionMap map[string]*discordgo.ApplicationCommandInteractionDataOption
 
