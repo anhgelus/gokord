@@ -64,12 +64,13 @@ func (b *Bot) Start() {
 		return
 	}
 
+	dg.Identify.Intents = b.Intents
+
 	err = dg.Open() // Starts the bot
 	if err != nil {
 		logger.Alert("bot.go - Start", err.Error())
 		return
 	}
-	dg.Identify.Intents = b.Intents
 
 	var wg sync.WaitGroup
 	st1 := time.Now()
