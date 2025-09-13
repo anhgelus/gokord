@@ -158,7 +158,7 @@ func (b *Bot) AddHandler(handler any) {
 	b.handlers = append(b.handlers, handler)
 }
 
-func (b *Bot) HandleModal(handler func(*discordgo.Session, *discordgo.InteractionCreate, interaction.ModalSubmitInteractionData, *cmd.ResponseBuilder),
+func (b *Bot) HandleModal(handler func(*discordgo.Session, *discordgo.InteractionCreate, interaction.ModalSubmitData, *cmd.ResponseBuilder),
 	id string) {
 	b.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if i.Type != types.InteractionModalSubmit {
@@ -173,7 +173,7 @@ func (b *Bot) HandleModal(handler func(*discordgo.Session, *discordgo.Interactio
 	})
 }
 
-func (b *Bot) HandleMessageComponent(handler func(*discordgo.Session, *discordgo.InteractionCreate, interaction.MessageComponentInteractionData, *cmd.ResponseBuilder),
+func (b *Bot) HandleMessageComponent(handler func(*discordgo.Session, *discordgo.InteractionCreate, interaction.MessageComponentData, *cmd.ResponseBuilder),
 	id string) {
 	b.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if i.Type != types.InteractionMessageComponent {

@@ -68,7 +68,7 @@ func New(name string, description string) CommandBuilder {
 }
 
 // NewOption creates a new CommandOptionBuilder for CommandBuilder
-func NewOption(t types.ApplicationCommandOption, name string, description string) CommandOptionBuilder {
+func NewOption(t types.CommandOption, name string, description string) CommandOptionBuilder {
 	return &commandOptionCreator{
 		Type:        t,
 		Name:        name,

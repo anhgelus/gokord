@@ -28,7 +28,7 @@ type commandCreator struct {
 
 // commandOptionCreator represents a generic option of commandCreator
 type commandOptionCreator struct {
-	Type        types.ApplicationCommandOption
+	Type        types.CommandOption
 	Name        string
 	Description string
 	Required    bool
@@ -131,7 +131,7 @@ func (c *commandCreator) Is(cmd *interaction.Command) bool {
 // ApplicationCommand turns commandCreator into a *interaction.Command
 func (c *commandCreator) ApplicationCommand() *interaction.Command {
 	base := interaction.Command{
-		Type:        types.ApplicationCommandChat,
+		Type:        types.CommandChat,
 		Name:        c.Name,
 		Description: c.Description,
 	}
@@ -167,7 +167,7 @@ func (c *commandCreator) ApplicationCommand() *interaction.Command {
 // ToSubCmd turns commandCreator into a subCmd
 func (c *commandCreator) toSubCmd() *subCmd {
 	base := interaction.CommandOption{
-		Type:        types.ApplicationCommandOptionSubCommand,
+		Type:        types.CommandOptionSubCommand,
 		Name:        c.Name,
 		Description: c.Description,
 	}

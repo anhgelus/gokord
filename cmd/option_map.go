@@ -8,7 +8,7 @@ import (
 type OptionMap map[string]*interaction.CommandInteractionDataOption
 
 func GenerateOptionMap(i *discordgo.InteractionCreate) OptionMap {
-	options := i.ApplicationCommandData().Options
+	options := i.CommandData().Options
 	optionMap := make(OptionMap, len(options))
 	for _, opt := range options {
 		optionMap[opt.Name] = opt
@@ -17,7 +17,7 @@ func GenerateOptionMap(i *discordgo.InteractionCreate) OptionMap {
 }
 
 func GenerateOptionMapForSubcommand(i *discordgo.InteractionCreate) OptionMap {
-	options := i.ApplicationCommandData().Options[0].Options
+	options := i.CommandData().Options[0].Options
 	optionMap := make(OptionMap, len(options))
 	for _, opt := range options {
 		optionMap[opt.Name] = opt

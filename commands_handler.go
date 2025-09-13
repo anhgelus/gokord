@@ -14,7 +14,7 @@ var (
 
 // generalHandler used for subcommand
 func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreate, _ cmd.OptionMap, resp *cmd.ResponseBuilder) {
-	data := i.ApplicationCommandData()
+	data := i.CommandData()
 	sendWarn := func(msg string, msgSend string, more ...interface{}) {
 		logger.Warn(msg, "name", data.Name, more)
 		err := resp.IsEphemeral().SetMessage(msgSend).Send()

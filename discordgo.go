@@ -35,7 +35,7 @@ func GetTimestampFromId(id string) (time.Time, error) {
 func ComesFromDM(s *discordgo.Session, id string) (bool, error) {
 	channel, err := s.State.Channel(id)
 	if err != nil {
-		if channel, err = s.ChannelAPI().Get(id); err != nil {
+		if channel, err = s.ChannelAPI().Channel(id); err != nil {
 			return false, err
 		}
 	}

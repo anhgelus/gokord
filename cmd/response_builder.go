@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/anhgelus/gokord/component"
 	discordgo "github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/channel"
-	nc "github.com/nyttikord/gokord/component"
+	"github.com/nyttikord/gokord/component"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/interaction"
 )
@@ -22,7 +21,7 @@ type ResponseBuilder struct {
 	deferred   bool
 	edit       bool
 	modal      bool
-	components []nc.Component
+	components []component.Component
 	embeds     []*channel.MessageEmbed
 	files      []*channel.File
 	title      string
@@ -50,9 +49,13 @@ func formatInteractionResponse(r interface{}) string {
 // Send the response
 func (res *ResponseBuilder) Send() error {
 	if res.edit {
+		cmps := make([]component.Message, len(res.components))
+		for i, c := range res.components {
+			cmps[i] = c.(component.Message)
+		}
 		wb := &channel.WebhookEdit{
 			Content:    &res.content,
-			Components: &res.components,
+			Components: &cmps,
 			Embeds:     &res.embeds,
 			Files:      res.files,
 		}
@@ -63,9 +66,9 @@ func (res *ResponseBuilder) Send() error {
 		return err
 	}
 
-	r := &interaction.InteractionResponse{
+	r := &interaction.Response{
 		Type: types.InteractionResponseChannelMessageWithSource,
-		Data: &interaction.InteractionResponseData{
+		Data: &interaction.ResponseData{
 			Content:    res.content,
 			Components: res.components,
 			Embeds:     res.embeds,
@@ -184,7 +187,7 @@ func (res *ResponseBuilder) AddFile(f *channel.File) *ResponseBuilder {
 	return res
 }
 
-func (res *ResponseBuilder) SetComponents(c component.GeneralContainer) *ResponseBuilder {
-	res.components = c.Components()
+func (res *ResponseBuilder) SetComponents(c []component.Component) *ResponseBuilder {
+	res.components = c
 	return res
 }

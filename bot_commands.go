@@ -150,7 +150,7 @@ func (b *Bot) setupCommandsHandlers(s *discordgo.Session) {
 		if i.Type != types.InteractionApplicationCommand {
 			return
 		}
-		if h, ok := cmdMap[i.ApplicationCommandData().Name]; ok {
+		if h, ok := cmdMap[i.CommandData().Name]; ok {
 			resp := cmd.NewResponseBuilder(s, i)
 			optMap := cmd.GenerateOptionMap(i)
 			h(s, i, optMap, resp)
