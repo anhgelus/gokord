@@ -4,7 +4,6 @@ import (
 	discordgo "github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/interaction"
-	"github.com/nyttikord/gokord/logger"
 )
 
 type CommandHandler func(s *discordgo.Session, i *discordgo.InteractionCreate, optMap OptionMap, resp *ResponseBuilder)
@@ -55,9 +54,8 @@ type CommandChoiceBuilder interface {
 }
 
 // New creates a new CommandBuilder
-func New(lg logger.Logger, name string, description string) CommandBuilder {
+func New(name string, description string) CommandBuilder {
 	return &commandCreator{
-		Logger:           lg,
 		ContainsSub:      false,
 		IsSub:            false,
 		Name:             name,

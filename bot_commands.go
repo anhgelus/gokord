@@ -18,7 +18,7 @@ func (b *Bot) updateCommands(s *discordgo.Session) {
 	// add ping command
 	b.Commands = append(
 		b.Commands,
-		cmd.New(b, "ping", "Get the ping of the bot").
+		cmd.New("ping", "Get the ping of the bot").
 			SetHandler(pingCommand).
 			AddContext(types.InteractionContextGuild).
 			AddContext(types.InteractionContextBotDM).

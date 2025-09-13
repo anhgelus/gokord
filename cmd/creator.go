@@ -3,7 +3,6 @@ package cmd
 import (
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/interaction"
-	"github.com/nyttikord/gokord/logger"
 )
 
 // subCmd is for the internal use of the API
@@ -14,7 +13,6 @@ type subCmd struct {
 
 // commandCreator represents a generic command
 type commandCreator struct {
-	logger.Logger
 	ContainsSub      bool
 	IsSub            bool
 	Name             string
@@ -147,7 +145,7 @@ func (c *commandCreator) ApplicationCommand() *interaction.Command {
 		c.IntegrationTypes = []types.IntegrationInstall{types.IntegrationInstallGuild}
 	}
 	base.IntegrationTypes = &c.IntegrationTypes
-	c.LogDebug("Command creation", "name", c.Name, "has_sub", c.HasSub)
+	//logger.Log(logger.LevelDebug, 0, "Command creation, name: %s, has_sub: %v", c.Name, c.HasSub())
 	if !c.ContainsSub {
 		var options []*interaction.CommandOption
 		for _, o := range c.Options {
@@ -172,7 +170,7 @@ func (c *commandCreator) toSubCmd() *subCmd {
 		Name:        c.Name,
 		Description: c.Description,
 	}
-	c.LogDebug("Subcommand creation", "name", c.Name, "len(options)", len(c.Options))
+	//logger.Log(logger.LevelDebug, 0, "Subcommand creation, name: %s, len(options): %d", c.Name, len(c.Options))
 	if len(c.Options) > 0 {
 		var options []*interaction.CommandOption
 		for _, o := range c.Options {
