@@ -269,7 +269,7 @@ func (u *UserSelect) Component() discordgo.MessageComponent {
 }
 
 func (u *UserSelect) IsForModal() bool {
-	return false
+	return true
 }
 
 func (u *UserSelect) SetCustomID(s string) Interactive {
@@ -326,7 +326,7 @@ func (r *RoleSelect) Component() discordgo.MessageComponent {
 }
 
 func (r *RoleSelect) IsForModal() bool {
-	return false
+	return true
 }
 
 func (r *RoleSelect) SetCustomID(s string) Interactive {
@@ -383,7 +383,7 @@ func (m *MentionableSelect) Component() discordgo.MessageComponent {
 }
 
 func (m *MentionableSelect) IsForModal() bool {
-	return false
+	return true
 }
 
 func (m *MentionableSelect) SetCustomID(s string) Interactive {
@@ -440,7 +440,7 @@ func (m *ChannelSelect) Component() discordgo.MessageComponent {
 }
 
 func (m *ChannelSelect) IsForModal() bool {
-	return false
+	return true
 }
 
 func (m *ChannelSelect) SetCustomID(s string) Interactive {
