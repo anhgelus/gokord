@@ -1,9 +1,9 @@
 module github.com/anhgelus/gokord
 
-go 1.24
+go 1.24.0
 
 require (
-	github.com/nyttikord/gokord v0.30.0
+	github.com/nyttikord/gokord v0.30.1-0.20250913095232-b2bf78fb6673
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/redis/go-redis/v9 v9.12.0
 	gorm.io/gorm v1.30.1
@@ -15,7 +15,7 @@ require (
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	golang.org/x/crypto v0.41.0 // indirect
-	golang.org/x/sys v0.35.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
+	golang.org/x/crypto v0.42.0 // indirect
+	golang.org/x/sys v0.36.0 // indirect
+	golang.org/x/text v0.29.0 // indirect
 )

@@ -3,10 +3,11 @@ package gokord
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/anhgelus/gokord/logger"
 	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/anhgelus/gokord/logger"
 )
 
 type Version struct {

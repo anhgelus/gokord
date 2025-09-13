@@ -3,9 +3,14 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/anhgelus/gokord/component"
 	discordgo "github.com/nyttikord/gokord"
-	"time"
+	"github.com/nyttikord/gokord/channel"
+	nc "github.com/nyttikord/gokord/component"
+	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/interaction"
 )
 
 var Author string
@@ -17,9 +22,9 @@ type ResponseBuilder struct {
 	deferred   bool
 	edit       bool
 	modal      bool
-	components []discordgo.MessageComponent
-	embeds     []*discordgo.MessageEmbed
-	files      []*discordgo.File
+	components []nc.Component
+	embeds     []*channel.MessageEmbed
+	files      []*channel.File
 	title      string
 	customID   string
 	//
@@ -45,22 +50,22 @@ func formatInteractionResponse(r interface{}) string {
 // Send the response
 func (res *ResponseBuilder) Send() error {
 	if res.edit {
-		wb := &discordgo.WebhookEdit{
+		wb := &channel.WebhookEdit{
 			Content:    &res.content,
 			Components: &res.components,
 			Embeds:     &res.embeds,
 			Files:      res.files,
 		}
-		_, err := res.session.InteractionResponseEdit(res.interaction.Interaction, wb)
+		_, err := res.session.InteractionAPI().ResponseEdit(res.interaction.Interaction, wb)
 		if err != nil {
 			fmt.Println(formatInteractionResponse(wb))
 		}
 		return err
 	}
 
-	r := &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
+	r := &interaction.InteractionResponse{
+		Type: types.InteractionResponseChannelMessageWithSource,
+		Data: &interaction.InteractionResponseData{
 			Content:    res.content,
 			Components: res.components,
 			Embeds:     res.embeds,
@@ -70,16 +75,16 @@ func (res *ResponseBuilder) Send() error {
 		},
 	}
 	if res.deferred {
-		r.Type = discordgo.InteractionResponseDeferredChannelMessageWithSource
+		r.Type = types.InteractionResponseDeferredChannelMessageWithSource
 	}
 	if res.ephemeral {
-		r.Data.Flags = discordgo.MessageFlagsEphemeral
+		r.Data.Flags = channel.MessageFlagsEphemeral
 	}
 	if res.modal {
-		r.Type = discordgo.InteractionResponseModal
+		r.Type = types.InteractionResponseModal
 	}
 
-	if err := res.session.InteractionRespond(res.interaction.Interaction, r); err != nil {
+	if err := res.session.InteractionAPI().Respond(res.interaction.Interaction, r); err != nil {
 		fmt.Println(formatInteractionResponse(r))
 		return err
 	}
@@ -152,27 +157,27 @@ func (res *ResponseBuilder) SetCustomID(s string) *ResponseBuilder {
 	return res
 }
 
-func (res *ResponseBuilder) AddEmbed(e *discordgo.MessageEmbed) *ResponseBuilder {
+func (res *ResponseBuilder) AddEmbed(e *channel.MessageEmbed) *ResponseBuilder {
 	t := time.Now()
-	e.Footer = &discordgo.MessageEmbedFooter{
+	e.Footer = &channel.MessageEmbedFooter{
 		Text:    "by " + Author,
 		IconURL: res.session.State.User.AvatarURL(""),
 	}
 	e.Timestamp = t.Format(time.RFC3339)
-	e.Author = &discordgo.MessageEmbedAuthor{
+	e.Author = &channel.MessageEmbedAuthor{
 		Name: res.session.State.User.Username,
 	}
 	if res.embeds == nil {
-		res.embeds = []*discordgo.MessageEmbed{e}
+		res.embeds = []*channel.MessageEmbed{e}
 	} else {
 		res.embeds = append(res.embeds, e)
 	}
 	return res
 }
 
-func (res *ResponseBuilder) AddFile(f *discordgo.File) *ResponseBuilder {
+func (res *ResponseBuilder) AddFile(f *channel.File) *ResponseBuilder {
 	if res.files == nil {
-		res.files = []*discordgo.File{f}
+		res.files = []*channel.File{f}
 	} else {
 		res.files = append(res.files, f)
 	}

@@ -2,10 +2,11 @@ package gokord
 
 import (
 	"fmt"
+	"time"
+
 	cmd2 "github.com/anhgelus/gokord/cmd"
 	"github.com/anhgelus/gokord/logger"
 	discordgo "github.com/nyttikord/gokord"
-	"time"
 )
 
 func pingCommand(s *discordgo.Session, i *discordgo.InteractionCreate, _ cmd2.OptionMap, resp *cmd2.ResponseBuilder) {
@@ -14,7 +15,7 @@ func pingCommand(s *discordgo.Session, i *discordgo.InteractionCreate, _ cmd2.Op
 		return
 	}
 
-	response, err := s.InteractionResponse(i.Interaction)
+	response, err := s.InteractionAPI().Response(i.Interaction)
 	if err != nil {
 		logger.Alert("ping_command.go - Interaction response", err.Error())
 	}

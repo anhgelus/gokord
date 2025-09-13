@@ -1,6 +1,9 @@
 package component
 
-import discordgo "github.com/nyttikord/gokord"
+import (
+	discordgo "github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/component"
+)
 
 type Section struct {
 	components []SubSection
@@ -13,12 +16,12 @@ func (s *Section) SetID(i int) Sub {
 	panic("implement me")
 }
 
-func (s *Section) Component() discordgo.MessageComponent {
-	cp := make([]discordgo.MessageComponent, len(s.components))
+func (s *Section) Component() component.Component {
+	cp := make([]component.Component, len(s.components))
 	for i, sub := range s.components {
 		cp[i] = sub.Component()
 	}
-	return discordgo.Section{
+	return &component.Section{
 		ID:         s.id,
 		Components: cp,
 		Accessory:  s.accessory.Component(),
@@ -51,10 +54,10 @@ func NewSection() *Section {
 }
 
 type TextDisplay struct {
-	discordgo.TextDisplay
+	component.TextDisplay
 }
 
-func (t *TextDisplay) Component() discordgo.MessageComponent {
+func (t *TextDisplay) Component() component.Component {
 	return t.TextDisplay
 }
 
@@ -82,10 +85,10 @@ func NewTextDisplay(content string) *TextDisplay {
 }
 
 type Thumbnail struct {
-	discordgo.Thumbnail
+	component.Thumbnail
 }
 
-func (t *Thumbnail) Component() discordgo.MessageComponent {
+func (t *Thumbnail) Component() component.Component {
 	return t.Thumbnail
 }
 
@@ -110,7 +113,7 @@ func (t *Thumbnail) SetDescription(s string) *Thumbnail {
 
 // SetMedia takes an URL
 func (t *Thumbnail) SetMedia(s string) *Thumbnail {
-	t.Media = discordgo.UnfurledMediaItem{URL: s}
+	t.Media = component.UnfurledMediaItem{URL: s}
 	return t
 }
 
@@ -122,10 +125,10 @@ func NewThumbnail(media string) *Thumbnail {
 }
 
 type MediaGallery struct {
-	discordgo.MediaGallery
+	component.MediaGallery
 }
 
-func (m *MediaGallery) Component() discordgo.MessageComponent {
+func (m *MediaGallery) Component() component.Component {
 	return m.MediaGallery
 }
 
@@ -140,10 +143,10 @@ func (m *MediaGallery) SetID(i int) Sub {
 
 func (m *MediaGallery) Add(url string, description string, spoiler bool) *MediaGallery {
 	if m.Items == nil {
-		m.Items = []discordgo.MediaGalleryItem{}
+		m.Items = []component.MediaGalleryItem{}
 	}
-	item := discordgo.MediaGalleryItem{
-		Media:       discordgo.UnfurledMediaItem{URL: url},
+	item := component.MediaGalleryItem{
+		Media:       component.UnfurledMediaItem{URL: url},
 		Description: &description,
 		Spoiler:     spoiler,
 	}
@@ -163,11 +166,11 @@ func NewMediaGallery() *MediaGallery {
 }
 
 type File struct {
-	discordgo.FileComponent
+	component.File
 }
 
-func (f *File) Component() discordgo.MessageComponent {
-	return f.FileComponent
+func (f *File) Component() component.Component {
+	return f.File
 }
 
 func (f *File) IsForModal() bool {
@@ -186,7 +189,7 @@ func (f *File) IsSpoiler() *File {
 
 // SetFile takes an URL
 func (f *File) SetFile(s string) *File {
-	f.File = discordgo.UnfurledMediaItem{URL: s}
+	f.File.File = component.UnfurledMediaItem{URL: s}
 	return f
 }
 
@@ -200,10 +203,10 @@ func NewFile(media string) *File {
 }
 
 type Separator struct {
-	discordgo.Separator
+	component.Separator
 }
 
-func (s *Separator) Component() discordgo.MessageComponent {
+func (s *Separator) Component() component.Component {
 	return s.Separator
 }
 
@@ -222,7 +225,7 @@ func (s *Separator) IsNotDivider() *Separator {
 	return s
 }
 
-func (s *Separator) SetSpacing(sp discordgo.SeparatorSpacingSize) *Separator {
+func (s *Separator) SetSpacing(sp component.SeparatorSpacingSize) *Separator {
 	s.Spacing = &sp
 	return s
 }
@@ -235,7 +238,7 @@ func NewSeparator() *Separator {
 	s := new(Separator)
 	b := true
 	s.Divider = &b
-	return s.SetSpacing(discordgo.SeparatorSpacingSizeSmall)
+	return s.SetSpacing(component.SeparatorSpacingSizeSmall)
 }
 
 type Container struct {
@@ -245,12 +248,12 @@ type Container struct {
 	spoiler     bool
 }
 
-func (c *Container) Component() discordgo.MessageComponent {
-	cp := make([]discordgo.MessageComponent, len(c.components))
+func (c *Container) Component() component.Component {
+	cp := make([]component.Component, len(c.components))
 	for i, c := range c.components {
 		cp[i] = c.Component()
 	}
-	return discordgo.Container{
+	return &component.Container{
 		Components:  cp,
 		ID:          c.id,
 		AccentColor: c.accentColor,

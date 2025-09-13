@@ -1,7 +1,9 @@
 package component
 
 import (
-	discordgo "github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/component"
+	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/emoji"
 )
 
 type ActionRow struct {
@@ -15,12 +17,12 @@ func (a *ActionRow) SetID(i int) Sub {
 	return a
 }
 
-func (a *ActionRow) Component() discordgo.MessageComponent {
-	cp := make([]discordgo.MessageComponent, len(a.subs))
+func (a *ActionRow) Component() component.Component {
+	cp := make([]component.Component, len(a.subs))
 	for i, sub := range a.subs {
 		cp[i] = sub.Component()
 	}
-	return discordgo.ActionsRow{
+	return &component.ActionsRow{
 		Components: cp,
 	}
 }
@@ -57,10 +59,10 @@ func NewActionRow() *ActionRow {
 }
 
 type Button struct {
-	discordgo.Button
+	component.Button
 }
 
-func (b *Button) Component() discordgo.MessageComponent {
+func (b *Button) Component() component.Component {
 	return b.Button
 }
 
@@ -83,7 +85,7 @@ func (b *Button) SetLabel(l string) *Button {
 	return b
 }
 
-func (b *Button) SetStyle(s discordgo.ButtonStyle) *Button {
+func (b *Button) SetStyle(s component.ButtonStyle) *Button {
 	b.Style = s
 	return b
 }
@@ -93,7 +95,7 @@ func (b *Button) IsDisabled() *Button {
 	return b
 }
 
-func (b *Button) SetEmoji(e *discordgo.ComponentEmoji) *Button {
+func (b *Button) SetEmoji(e *emoji.Component) *Button {
 	b.Emoji = e
 	return b
 }
@@ -105,14 +107,14 @@ func (b *Button) SetURL(url string) *Button {
 
 func (b *Button) accessory() {}
 
-func NewButton(customID string, style discordgo.ButtonStyle) *Button {
+func NewButton(customID string, style component.ButtonStyle) *Button {
 	b := new(Button)
 	b.SetCustomID(customID)
 	return b.SetStyle(style)
 }
 
 type SelectOption struct {
-	discordgo.SelectMenuOption
+	component.SelectMenuOption
 }
 
 func (s *SelectOption) SetDescription(desc string) *SelectOption {
@@ -120,7 +122,7 @@ func (s *SelectOption) SetDescription(desc string) *SelectOption {
 	return s
 }
 
-func (s *SelectOption) SetEmoji(e *discordgo.ComponentEmoji) *SelectOption {
+func (s *SelectOption) SetEmoji(e *emoji.Component) *SelectOption {
 	s.Emoji = e
 	return s
 }
@@ -132,7 +134,7 @@ func (s *SelectOption) IsDefault() *SelectOption {
 
 func NewSelectOption(label string, value string) *SelectOption {
 	return &SelectOption{
-		SelectMenuOption: discordgo.SelectMenuOption{
+		SelectMenuOption: component.SelectMenuOption{
 			Label: label,
 			Value: value,
 		},
@@ -140,11 +142,11 @@ func NewSelectOption(label string, value string) *SelectOption {
 }
 
 type StringSelect struct {
-	discordgo.SelectMenu
+	component.SelectMenu
 }
 
-func (s *StringSelect) Component() discordgo.MessageComponent {
-	s.MenuType = discordgo.StringSelectMenu
+func (s *StringSelect) Component() component.Component {
+	s.MenuType = types.SelectMenuString
 	return s.SelectMenu
 }
 
@@ -184,7 +186,7 @@ func (s *StringSelect) SetPlaceholder(placeholder string) *StringSelect {
 
 func (s *StringSelect) AddOption(opt *SelectOption) *StringSelect {
 	if s.Options == nil {
-		s.Options = []discordgo.SelectMenuOption{}
+		s.Options = []component.SelectMenuOption{}
 	}
 	s.Options = append(s.Options, opt.SelectMenuOption)
 	return s
@@ -197,10 +199,10 @@ func NewStringSelect(customID string) *StringSelect {
 }
 
 type TextInput struct {
-	discordgo.TextInput
+	component.TextInput
 }
 
-func (t *TextInput) Component() discordgo.MessageComponent {
+func (t *TextInput) Component() component.Component {
 	return t.TextInput
 }
 
@@ -218,7 +220,7 @@ func (t *TextInput) SetID(i int) Sub {
 	return t
 }
 
-func (t *TextInput) SetStyle(s discordgo.TextInputStyle) *TextInput {
+func (t *TextInput) SetStyle(s component.TextInputStyle) *TextInput {
 	t.Style = s
 	return t
 }
@@ -253,18 +255,18 @@ func (t *TextInput) SetValue(v string) *TextInput {
 	return t
 }
 
-func NewTextInput(customID string, label string, style discordgo.TextInputStyle) *TextInput {
+func NewTextInput(customID string, label string, style component.TextInputStyle) *TextInput {
 	t := new(TextInput)
 	t.SetCustomID(customID)
 	return t.SetLabel(label).SetStyle(style)
 }
 
 type UserSelect struct {
-	discordgo.SelectMenu
+	component.SelectMenu
 }
 
-func (u *UserSelect) Component() discordgo.MessageComponent {
-	u.MenuType = discordgo.UserSelectMenu
+func (u *UserSelect) Component() component.Component {
+	u.MenuType = types.SelectMenuUser
 	return u.SelectMenu
 }
 
@@ -304,9 +306,9 @@ func (u *UserSelect) SetPlaceholder(placeholder string) *UserSelect {
 
 func (u *UserSelect) AddDefault(id string) *UserSelect {
 	if u.DefaultValues == nil {
-		u.DefaultValues = []discordgo.SelectMenuDefaultValue{}
+		u.DefaultValues = []component.SelectMenuDefaultValue{}
 	}
-	u.DefaultValues = append(u.DefaultValues, discordgo.SelectMenuDefaultValue{ID: id, Type: discordgo.SelectMenuDefaultValueUser})
+	u.DefaultValues = append(u.DefaultValues, component.SelectMenuDefaultValue{ID: id, Type: types.SelectMenuDefaultValueUser})
 	return u
 }
 
@@ -317,11 +319,11 @@ func NewUserSelect(customID string) *UserSelect {
 }
 
 type RoleSelect struct {
-	discordgo.SelectMenu
+	component.SelectMenu
 }
 
-func (r *RoleSelect) Component() discordgo.MessageComponent {
-	r.MenuType = discordgo.RoleSelectMenu
+func (r *RoleSelect) Component() component.Component {
+	r.MenuType = types.SelectMenuRole
 	return r.SelectMenu
 }
 
@@ -361,9 +363,9 @@ func (r *RoleSelect) SetPlaceholder(placeholder string) *RoleSelect {
 
 func (r *RoleSelect) AddDefault(id string) *RoleSelect {
 	if r.DefaultValues == nil {
-		r.DefaultValues = []discordgo.SelectMenuDefaultValue{}
+		r.DefaultValues = []component.SelectMenuDefaultValue{}
 	}
-	r.DefaultValues = append(r.DefaultValues, discordgo.SelectMenuDefaultValue{ID: id, Type: discordgo.SelectMenuDefaultValueRole})
+	r.DefaultValues = append(r.DefaultValues, component.SelectMenuDefaultValue{ID: id, Type: types.SelectMenuDefaultValueRole})
 	return r
 }
 
@@ -374,11 +376,11 @@ func NewRoleSelect(customID string) *RoleSelect {
 }
 
 type MentionableSelect struct {
-	discordgo.SelectMenu
+	component.SelectMenu
 }
 
-func (m *MentionableSelect) Component() discordgo.MessageComponent {
-	m.MenuType = discordgo.MentionableSelectMenu
+func (m *MentionableSelect) Component() component.Component {
+	m.MenuType = types.SelectMenuMentionable
 	return m.SelectMenu
 }
 
@@ -416,11 +418,11 @@ func (m *MentionableSelect) SetPlaceholder(placeholder string) *MentionableSelec
 	return m
 }
 
-func (m *MentionableSelect) AddDefault(id string, tp discordgo.SelectMenuDefaultValueType) *MentionableSelect {
+func (m *MentionableSelect) AddDefault(id string, tp types.SelectMenuDefaultValue) *MentionableSelect {
 	if m.DefaultValues == nil {
-		m.DefaultValues = []discordgo.SelectMenuDefaultValue{}
+		m.DefaultValues = []component.SelectMenuDefaultValue{}
 	}
-	m.DefaultValues = append(m.DefaultValues, discordgo.SelectMenuDefaultValue{ID: id, Type: tp})
+	m.DefaultValues = append(m.DefaultValues, component.SelectMenuDefaultValue{ID: id, Type: tp})
 	return m
 }
 
@@ -431,11 +433,11 @@ func NewMentionableSelect(customID string) *MentionableSelect {
 }
 
 type ChannelSelect struct {
-	discordgo.SelectMenu
+	component.SelectMenu
 }
 
-func (m *ChannelSelect) Component() discordgo.MessageComponent {
-	m.MenuType = discordgo.ChannelSelectMenu
+func (m *ChannelSelect) Component() component.Component {
+	m.MenuType = types.SelectMenuChannel
 	return m.SelectMenu
 }
 
@@ -475,15 +477,15 @@ func (m *ChannelSelect) SetPlaceholder(placeholder string) *ChannelSelect {
 
 func (m *ChannelSelect) AddDefault(id string) *ChannelSelect {
 	if m.DefaultValues == nil {
-		m.DefaultValues = []discordgo.SelectMenuDefaultValue{}
+		m.DefaultValues = []component.SelectMenuDefaultValue{}
 	}
-	m.DefaultValues = append(m.DefaultValues, discordgo.SelectMenuDefaultValue{ID: id, Type: discordgo.SelectMenuDefaultValueChannel})
+	m.DefaultValues = append(m.DefaultValues, component.SelectMenuDefaultValue{ID: id, Type: types.SelectMenuDefaultValueChannel})
 	return m
 }
 
-func (m *ChannelSelect) AddChannelType(tp discordgo.ChannelType) *ChannelSelect {
+func (m *ChannelSelect) AddChannelType(tp types.Channel) *ChannelSelect {
 	if m.ChannelTypes == nil {
-		m.ChannelTypes = []discordgo.ChannelType{}
+		m.ChannelTypes = []types.Channel{}
 	}
 	m.ChannelTypes = append(m.ChannelTypes, tp)
 	return m

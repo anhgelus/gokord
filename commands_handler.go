@@ -2,6 +2,7 @@ package gokord
 
 import (
 	"errors"
+
 	"github.com/anhgelus/gokord/cmd"
 	"github.com/anhgelus/gokord/logger"
 	discordgo "github.com/nyttikord/gokord"

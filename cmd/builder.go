@@ -2,6 +2,8 @@ package cmd
 
 import (
 	discordgo "github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/interaction"
 )
 
 type CommandHandler func(s *discordgo.Session, i *discordgo.InteractionCreate, optMap OptionMap, resp *ResponseBuilder)
@@ -18,11 +20,11 @@ type CommandBuilder interface {
 	// AddOption to the CommandBuilder (also call HasOption)
 	AddOption(s CommandOptionBuilder) CommandBuilder
 	// AddContext to the command.
-	// If it is empty, discordgo.InteractionContextGuild will be added automatically
-	AddContext(ctx discordgo.InteractionContextType) CommandBuilder
+	// If it is empty, types.InteractionContextGuild will be added automatically
+	AddContext(ctx types.InteractionContext) CommandBuilder
 	// AddIntegrationType (where the command is installed).
-	// If it is empty, discordgo.ApplicationIntegrationGuildInstall will be added automatically
-	AddIntegrationType(ctx discordgo.ApplicationIntegrationType) CommandBuilder
+	// If it is empty, types.IntegrationGuildInstall will be added automatically
+	AddIntegrationType(ctx types.Integration) CommandBuilder
 	// SetPermission of the CommandBuilder
 	SetPermission(p *int64) CommandBuilder
 	// GetName returns the name of the command
@@ -34,7 +36,7 @@ type CommandBuilder interface {
 	// GetSubs returns subcommands
 	GetSubs() []CommandBuilder
 	// ApplicationCommand returns the application command understandable by Discord
-	ApplicationCommand() *discordgo.ApplicationCommand
+	ApplicationCommand() *interaction.Command
 	setSub(bool)
 	toSubCmd() *subCmd
 }
@@ -44,11 +46,11 @@ type CommandOptionBuilder interface {
 	IsRequired() CommandOptionBuilder
 	// AddChoice to the CommandOptionBuilder
 	AddChoice(ch CommandChoiceBuilder) CommandOptionBuilder
-	toDiscordOption() *discordgo.ApplicationCommandOption
+	toDiscordOption() *interaction.CommandOption
 }
 
 type CommandChoiceBuilder interface {
-	toDiscordChoice() *discordgo.ApplicationCommandOptionChoice
+	toDiscordChoice() *interaction.CommandOptionChoice
 }
 
 // New creates a new CommandBuilder
@@ -66,7 +68,7 @@ func New(name string, description string) CommandBuilder {
 }
 
 // NewOption creates a new CommandOptionBuilder for CommandBuilder
-func NewOption(t discordgo.ApplicationCommandOptionType, name string, description string) CommandOptionBuilder {
+func NewOption(t types.ApplicationCommandOption, name string, description string) CommandOptionBuilder {
 	return &commandOptionCreator{
 		Type:        t,
 		Name:        name,

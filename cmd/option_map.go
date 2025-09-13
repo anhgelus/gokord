@@ -1,8 +1,11 @@
 package cmd
 
-import discordgo "github.com/nyttikord/gokord"
+import (
+	discordgo "github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/interaction"
+)
 
-type OptionMap map[string]*discordgo.ApplicationCommandInteractionDataOption
+type OptionMap map[string]*interaction.CommandInteractionDataOption
 
 func GenerateOptionMap(i *discordgo.InteractionCreate) OptionMap {
 	options := i.ApplicationCommandData().Options

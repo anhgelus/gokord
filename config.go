@@ -3,12 +3,13 @@ package gokord
 import (
 	"errors"
 	"fmt"
+	"log/slog"
+	"os"
+
 	"github.com/anhgelus/gokord/cmd"
 	"github.com/anhgelus/gokord/logger"
 	"github.com/pelletier/go-toml/v2"
 	"gorm.io/gorm"
-	"log/slog"
-	"os"
 )
 
 var (

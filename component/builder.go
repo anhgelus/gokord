@@ -1,49 +1,51 @@
 package component
 
-import discordgo "github.com/nyttikord/gokord"
+import (
+	"github.com/nyttikord/gokord/component"
+)
 
 type GeneralContainer interface {
 	Add(TopLevel) GeneralContainer
-	Components() []discordgo.MessageComponent
+	Components() []component.Component
 	ForModal() GeneralContainer
 }
 
 type Sub interface {
-	Component() discordgo.MessageComponent
+	Component() component.Component
 	IsForModal() bool
 	SetID(int) Sub
 }
 
 type TopLevel interface {
-	Component() discordgo.MessageComponent
+	Component() component.Component
 	IsForModal() bool
 	SetID(int) Sub
 	isTopLevel()
 }
 
 type Interactive interface {
-	Component() discordgo.MessageComponent
+	Component() component.Component
 	IsForModal() bool
 	SetID(int) Sub
 	SetCustomID(string) Interactive
 }
 
 type Accessory interface {
-	Component() discordgo.MessageComponent
+	Component() component.Component
 	IsForModal() bool
 	SetID(int) Sub
 	accessory() // does nothing
 }
 
 type SubContainer interface {
-	Component() discordgo.MessageComponent
+	Component() component.Component
 	IsForModal() bool
 	SetID(int) Sub
 	subContainer() // does nothing
 }
 
 type SubSection interface {
-	Component() discordgo.MessageComponent
+	Component() component.Component
 	IsForModal() bool
 	SetID(int) Sub
 	subSection() // does nothing
@@ -65,8 +67,8 @@ func (b *containerBuilder) Add(t TopLevel) GeneralContainer {
 	return b
 }
 
-func (b *containerBuilder) Components() []discordgo.MessageComponent {
-	cp := make([]discordgo.MessageComponent, len(b.subs))
+func (b *containerBuilder) Components() []component.Component {
+	cp := make([]component.Component, len(b.subs))
 	for i, sub := range b.subs {
 		cp[i] = sub.Component()
 	}

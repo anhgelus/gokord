@@ -14,6 +14,9 @@ import (
 	"github.com/anhgelus/gokord/cmd"
 	"github.com/anhgelus/gokord/logger"
 	discordgo "github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/interaction"
 )
 
 var (
@@ -22,7 +25,7 @@ var (
 	ErrBadStatusType     = errors.New("bad status type, please use the constant")
 	ErrStatusUrlNotFound = errors.New("status url not found")
 
-	registeredCommands []*discordgo.ApplicationCommand
+	registeredCommands []*interaction.Command
 )
 
 type StatusType int
@@ -33,7 +36,7 @@ const (
 	StreamingStatus StatusType = 2
 	ListeningStatus StatusType = 3
 
-	AdminPermission int64 = discordgo.PermissionManageGuild // AdminPermission of the command
+	AdminPermission int64 = discord.PermissionManageGuild // AdminPermission of the command
 )
 
 // Bot is the representation of a discord bot
@@ -46,7 +49,7 @@ type Bot struct {
 	Version     *Version
 	Innovations []*Innovation
 	Name        string
-	Intents     discordgo.Intent
+	Intents     discord.Intent
 }
 
 // Status contains all required information for updating the status
@@ -58,15 +61,11 @@ type Status struct {
 
 // Start the Bot (blocking instruction)
 func (b *Bot) Start() {
-	dg, err := discordgo.New("Bot " + b.Token) // New connection to the discord API with bot token
-	if err != nil {
-		logger.Alert("bot.go - Token", err.Error())
-		return
-	}
+	dg := discordgo.New("Bot " + b.Token) // New connection to the discord API with bot token
 
 	dg.Identify.Intents = b.Intents
 
-	err = dg.Open() // Starts the bot
+	err := dg.Open() // Starts the bot
 	if err != nil {
 		logger.Alert("bot.go - Start", err.Error())
 		return
@@ -159,10 +158,10 @@ func (b *Bot) AddHandler(handler any) {
 	b.handlers = append(b.handlers, handler)
 }
 
-func (b *Bot) HandleModal(handler func(*discordgo.Session, *discordgo.InteractionCreate, discordgo.ModalSubmitInteractionData, *cmd.ResponseBuilder),
+func (b *Bot) HandleModal(handler func(*discordgo.Session, *discordgo.InteractionCreate, interaction.ModalSubmitInteractionData, *cmd.ResponseBuilder),
 	id string) {
 	b.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if i.Type != discordgo.InteractionModalSubmit {
+		if i.Type != types.InteractionModalSubmit {
 			return
 		}
 
@@ -174,10 +173,10 @@ func (b *Bot) HandleModal(handler func(*discordgo.Session, *discordgo.Interactio
 	})
 }
 
-func (b *Bot) HandleMessageComponent(handler func(*discordgo.Session, *discordgo.InteractionCreate, discordgo.MessageComponentInteractionData, *cmd.ResponseBuilder),
+func (b *Bot) HandleMessageComponent(handler func(*discordgo.Session, *discordgo.InteractionCreate, interaction.MessageComponentInteractionData, *cmd.ResponseBuilder),
 	id string) {
 	b.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if i.Type != discordgo.InteractionMessageComponent {
+		if i.Type != types.InteractionMessageComponent {
 			return
 		}
 
