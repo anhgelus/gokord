@@ -4,7 +4,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/anhgelus/gokord/logger"
 	discordgo "github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/user"
@@ -14,7 +13,7 @@ import (
 func FetchGuildUser(s *discordgo.Session, guildID string) []*user.Member {
 	member, err := s.GuildAPI().Members(guildID, "", 1000)
 	if err != nil {
-		logger.Alert("discordgo.go - Failed to fetch guild users", err.Error())
+		s.LogError(err, "fetching guild users")
 	}
 	return member
 }

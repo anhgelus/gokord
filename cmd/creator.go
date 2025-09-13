@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"github.com/anhgelus/gokord/logger"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/interaction"
+	"github.com/nyttikord/gokord/logger"
 )
 
 // subCmd is for the internal use of the API
@@ -14,12 +14,13 @@ type subCmd struct {
 
 // commandCreator represents a generic command
 type commandCreator struct {
+	logger.Logger
 	ContainsSub      bool
 	IsSub            bool
 	Name             string
 	Permission       *int64
 	Contexts         []types.InteractionContext
-	IntegrationTypes []types.Integration
+	IntegrationTypes []types.IntegrationInstall
 	Description      string
 	Options          []CommandOptionBuilder
 	Subs             []CommandBuilder
@@ -106,9 +107,9 @@ func (c *commandCreator) AddContext(ctx types.InteractionContext) CommandBuilder
 	return c
 }
 
-func (c *commandCreator) AddIntegrationType(it types.Integration) CommandBuilder {
+func (c *commandCreator) AddIntegrationType(it types.IntegrationInstall) CommandBuilder {
 	if c.IntegrationTypes == nil {
-		c.IntegrationTypes = []types.Integration{}
+		c.IntegrationTypes = []types.IntegrationInstall{}
 	}
 	c.IntegrationTypes = append(c.IntegrationTypes, it)
 	return c
@@ -143,10 +144,10 @@ func (c *commandCreator) ApplicationCommand() *interaction.Command {
 	}
 	base.Contexts = &c.Contexts
 	if c.IntegrationTypes == nil || len(c.IntegrationTypes) == 0 {
-		c.IntegrationTypes = []types.Integration{types.IntegrationGuildInstall}
+		c.IntegrationTypes = []types.IntegrationInstall{types.IntegrationInstallGuild}
 	}
 	base.IntegrationTypes = &c.IntegrationTypes
-	logger.Debug("Command creation", "name", c.Name, "has_sub", c.HasSub)
+	c.LogDebug("Command creation", "name", c.Name, "has_sub", c.HasSub)
 	if !c.ContainsSub {
 		var options []*interaction.CommandOption
 		for _, o := range c.Options {
@@ -171,7 +172,7 @@ func (c *commandCreator) toSubCmd() *subCmd {
 		Name:        c.Name,
 		Description: c.Description,
 	}
-	logger.Debug("Subcommand creation", "name", c.Name, "len(options)", len(c.Options))
+	c.LogDebug("Subcommand creation", "name", c.Name, "len(options)", len(c.Options))
 	if len(c.Options) > 0 {
 		var options []*interaction.CommandOption
 		for _, o := range c.Options {

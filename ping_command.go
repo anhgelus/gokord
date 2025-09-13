@@ -5,29 +5,28 @@ import (
 	"time"
 
 	cmd2 "github.com/anhgelus/gokord/cmd"
-	"github.com/anhgelus/gokord/logger"
 	discordgo "github.com/nyttikord/gokord"
 )
 
 func pingCommand(s *discordgo.Session, i *discordgo.InteractionCreate, _ cmd2.OptionMap, resp *cmd2.ResponseBuilder) {
 	if err := resp.IsDeferred().Send(); err != nil { // sends the "is thinking..."
-		logger.Alert("ping_command.go - Respond interaction", err.Error())
+		s.LogError(err, "respond interaction")
 		return
 	}
 
 	response, err := s.InteractionAPI().Response(i.Interaction)
 	if err != nil {
-		logger.Alert("ping_command.go - Interaction response", err.Error())
+		s.LogError(err, "interaction response")
 	}
 
 	var msg string
 
 	timestamp, err := GetTimestampFromId(i.ID)
 	if err != nil {
-		logger.Alert("ping_command.go - Connect timestamp from ID", err.Error())
+		s.LogError(err, "connect timestamp from ID")
 		msg = ":ping_pong: Pong !"
 	} else {
-		logger.Debug(timestamp.Format(time.UnixDate))
+		s.LogDebug(timestamp.Format(time.UnixDate))
 		msg = fmt.Sprintf(
 			":ping_pong: Pong !\nLatence du bot : `%d ms`\nLatence de l'API discord : `%d ms`",
 			response.Timestamp.Sub(timestamp).Milliseconds(),
@@ -36,6 +35,6 @@ func pingCommand(s *discordgo.Session, i *discordgo.InteractionCreate, _ cmd2.Op
 	}
 
 	if err = resp.SetMessage(msg).Send(); err != nil { // modifies the "is thinking..."
-		logger.Alert("ping_command.go - Interaction response edit", err.Error())
+		s.LogError(err, "interaction response edit")
 	}
 }

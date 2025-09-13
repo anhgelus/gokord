@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/anhgelus/gokord/cmd"
-	"github.com/anhgelus/gokord/logger"
+	"github.com/nyttikord/gokord/logger"
 	"github.com/pelletier/go-toml/v2"
 	"gorm.io/gorm"
 )
@@ -77,8 +77,8 @@ type ConfigInfo struct {
 	DefaultValues func()      // DefaultValues is called to set up the default values of the config
 }
 
-func setupBaseConfig() error {
-	return LoadConfig(&BaseCfg, "config", BaseCfg.SetDefaultValues, func(_ interface{}) ([]byte, error) {
+func setupBaseConfig(lg logger.Logger) error {
+	return LoadConfig(lg, &BaseCfg, "config", BaseCfg.SetDefaultValues, func(_ interface{}) ([]byte, error) {
 		return BaseCfg.Marshal()
 	}, func(data []byte, _ interface{}) error {
 		return BaseCfg.Unmarshal(data)
@@ -86,7 +86,7 @@ func setupBaseConfig() error {
 }
 
 // LoadConfig a config (already called on start)
-func LoadConfig(cfg interface{}, name string, defaultValues func(), marshal func(interface{}) ([]byte, error), unmarshal func([]byte, interface{}) error) error {
+func LoadConfig(lg logger.Logger, cfg interface{}, name string, defaultValues func(), marshal func(interface{}) ([]byte, error), unmarshal func([]byte, interface{}) error) error {
 	path := fmt.Sprintf("%s/%s.toml", ConfigFolder, name)
 	err := os.Mkdir(ConfigFolder, 0666)
 	if err != nil && !os.IsExist(err) {
@@ -97,7 +97,7 @@ func LoadConfig(cfg interface{}, name string, defaultValues func(), marshal func
 		if !errors.Is(err, os.ErrNotExist) {
 			return err
 		}
-		logger.Alert("config.go - Create file", "File not found, creating a new one.")
+		lg.LogWarn("File not found, creating a new one.")
 		defaultValues()
 		c, err = marshal(cfg)
 		if err != nil {
@@ -115,10 +115,10 @@ func LoadConfig(cfg interface{}, name string, defaultValues func(), marshal func
 // SetupConfigs with the given configs (+ base config which is available at BaseCfg)
 //
 // customBaseConfig is the new type of BaseCfg
-func SetupConfigs(customBaseConfig BaseConfig, cfgInfo []*ConfigInfo) error {
+func SetupConfigs(lg logger.Logger, customBaseConfig BaseConfig, cfgInfo []*ConfigInfo) error {
 	var err error
 	BaseCfg = customBaseConfig
-	err = setupBaseConfig()
+	err = setupBaseConfig(lg)
 	if err != nil {
 		return err
 	}
@@ -130,7 +130,7 @@ func SetupConfigs(customBaseConfig BaseConfig, cfgInfo []*ConfigInfo) error {
 	}
 
 	for _, cfg := range cfgInfo {
-		err = LoadConfig(cfg.Cfg, cfg.Name, cfg.DefaultValues, toml.Marshal, toml.Unmarshal)
+		err = LoadConfig(lg, cfg.Cfg, cfg.Name, cfg.DefaultValues, toml.Marshal, toml.Unmarshal)
 		if err != nil {
 			return err
 		}

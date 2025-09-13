@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	"github.com/anhgelus/gokord/cmd"
-	"github.com/anhgelus/gokord/logger"
 	discordgo "github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/interaction"
@@ -19,18 +18,18 @@ func (b *Bot) updateCommands(s *discordgo.Session) {
 	// add ping command
 	b.Commands = append(
 		b.Commands,
-		cmd.New("ping", "Get the ping of the bot").
+		cmd.New(b, "ping", "Get the ping of the bot").
 			SetHandler(pingCommand).
 			AddContext(types.InteractionContextGuild).
 			AddContext(types.InteractionContextBotDM).
 			AddContext(types.InteractionContextPrivateChannel).
-			AddIntegrationType(types.IntegrationGuildInstall).
-			AddIntegrationType(types.IntegrationUserInstall),
+			AddIntegrationType(types.IntegrationInstallGuild).
+			AddIntegrationType(types.IntegrationInstallUser),
 	)
 
 	update := b.getCommandsUpdate()
 	if update == nil {
-		logger.Alert("bot.go - Checking the update", "update is nil, check the log")
+		s.LogWarn("Update is nil, returning.")
 		return
 	}
 
@@ -57,7 +56,7 @@ func (b *Bot) removeCommands(s *discordgo.Session, update *InnovationCommands) {
 	appID := s.State.User.ID
 	cmdRegistered, err := s.InteractionAPI().Commands(appID, "")
 	if err != nil {
-		logger.Alert("bot.go - Fetching slash commands", err.Error())
+		s.LogError(err, "fetching slash commands")
 		return
 	}
 	for _, d := range update.Removed {
@@ -65,17 +64,13 @@ func (b *Bot) removeCommands(s *discordgo.Session, update *InnovationCommands) {
 			return d == e.Name
 		})
 		if id == -1 {
-			logger.Warn("Command not registered cannot be deleted", "name", d)
+			s.LogWarn("Command %s not registered, so it cannot be deleted", d)
 			continue
 		}
 		c := cmdRegistered[id]
 		err = s.InteractionAPI().CommandDelete(appID, "", cmdRegistered[id].ApplicationID)
 		if err != nil {
-			logger.Alert(
-				"bot.go - Deleting slash command", err.Error(),
-				"name", c.Name,
-				"id", c.ApplicationID,
-			)
+			s.LogError(err, "deleting command %s (%s)", c.Name, c.ID)
 		}
 	}
 }
@@ -89,7 +84,7 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 	if Debug {
 		gs, err := s.GuildAPI().UserGuilds(1, "", "", false)
 		if err != nil {
-			logger.Alert("bot.go - Fetching guilds for debug", err.Error())
+			s.LogError(err, "fetching guilds for debug")
 			return
 		} else {
 			guildID = gs[0].ID
@@ -102,7 +97,7 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 				return c == e.GetName()
 			})
 			if id == -1 {
-				logger.Warn("Impossible to find command", "name", c)
+				s.LogWarn("Impossible to find command %s", c)
 				continue
 			}
 			toUpdate = append(toUpdate, b.Commands[id])
@@ -115,19 +110,19 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 	for _, cb := range toUpdate {
 		c, err := s.InteractionAPI().CommandCreate(appID, guildID, cb.ApplicationCommand())
 		if err != nil {
-			logger.Alert("bot.go - Create guild application command", err.Error(), "name", cb.GetName())
+			s.LogError(err, "creating guild command %s", cb.GetName())
 			continue
 		}
 		registeredCommands = append(registeredCommands, c)
-		logger.Success(fmt.Sprintf("Command %s initialized", cb.GetName()))
+		s.LogInfo("Command %s initialized", cb.GetName())
 		o += 1
 	}
 	l := len(toUpdate)
 	msg := fmt.Sprintf("%d/%d commands has been created or updated", o, l)
 	if l != o {
-		logger.Warn(msg)
+		s.LogWarn(msg)
 	} else {
-		logger.Success(msg)
+		s.LogInfo(msg)
 	}
 }
 
@@ -136,9 +131,9 @@ func (b *Bot) setupCommandsHandlers(s *discordgo.Session) {
 	if cmdMap == nil || len(cmdMap) == 0 {
 		cmdMap = make(map[string]cmd.CommandHandler, len(b.Commands))
 		for _, c := range b.Commands {
-			logger.Debug("Setup handler", "command", c.GetName())
+			s.LogDebug("Setup handler for command %s", c.GetName())
 			if c.HasSub() {
-				logger.Debug("Using general handler", "command", c.GetName())
+				b.LogDebug("Using general handler for command %s", c.GetName())
 				cmdMap[c.GetName()] = b.generalHandler
 			} else {
 				cmdMap[c.GetName()] = c.GetHandler()
@@ -165,7 +160,7 @@ func (b *Bot) unregisterGuildCommands(s *discordgo.Session) {
 	}
 	gs, err := s.GuildAPI().UserGuilds(1, "", "", false)
 	if err != nil {
-		logger.Alert("bot.go - Fetching guilds for debug", err.Error())
+		s.LogError(err, "fetching guilds for debug")
 		return
 	}
 	guildID := gs[0].ID
@@ -175,7 +170,7 @@ func (b *Bot) unregisterGuildCommands(s *discordgo.Session) {
 		go func() {
 			err = s.InteractionAPI().CommandDelete(s.State.User.ID, guildID, v.ID)
 			if err != nil {
-				logger.Alert("bot.go - Delete application command", err.Error())
+				s.LogError(err, "deleting command %s (%s)", v.Name, v.ID)
 			}
 			wg.Done()
 		}()

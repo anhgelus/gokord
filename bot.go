@@ -3,7 +3,6 @@ package gokord
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math/rand/v2"
 	"os"
 	"os/signal"
@@ -12,11 +11,11 @@ import (
 	"time"
 
 	"github.com/anhgelus/gokord/cmd"
-	"github.com/anhgelus/gokord/logger"
 	discordgo "github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/interaction"
+	"github.com/nyttikord/gokord/logger"
 )
 
 var (
@@ -41,6 +40,7 @@ const (
 
 // Bot is the representation of a discord bot
 type Bot struct {
+	logger.Logger
 	Token       string                     // Token of the Bot
 	Status      []*Status                  // Status of the Bot
 	Commands    []cmd.CommandBuilder       // Commands of the Bot, use New to create easily a new command
@@ -64,20 +64,25 @@ func (b *Bot) Start() {
 	dg := discordgo.New("Bot " + b.Token) // New connection to the discord API with bot token
 
 	dg.Identify.Intents = b.Intents
+	b.Logger = dg
+
+	if Debug {
+		dg.ChangeLevel(logger.LevelDebug)
+	}
 
 	err := dg.Open() // Starts the bot
 	if err != nil {
-		logger.Alert("bot.go - Start", err.Error())
+		dg.LogError(err, "starting bot")
 		return
 	}
 
 	var wg sync.WaitGroup
-	st1 := time.Now()
+	st := time.Now()
 	// register commands
 	wg.Add(1)
 	go func() {
 		b.updateCommands(dg)
-		logger.Success("Commands updated")
+		dg.LogInfo("Commands updated in %s", time.Since(st))
 		wg.Done()
 	}()
 	b.setupCommandsHandlers(dg)
@@ -87,9 +92,9 @@ func (b *Bot) Start() {
 	}
 	if Debug {
 		dg.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			logger.Debug("Interaction received")
+			dg.LogDebug("Interaction received")
 			data, _ := json.Marshal(i)
-			logger.Debug(string(data))
+			dg.LogDebug("%s", data)
 		})
 	}
 	if b.AfterInit != nil {
@@ -98,14 +103,13 @@ func (b *Bot) Start() {
 
 	// wait until all setup goroutines are finished
 	wg.Wait()
-	st2 := time.Now()
-	delta := float64(st2.Unix() - st1.Unix())
+	delta := time.Since(st)
 	to := dg.Client.Timeout.Seconds()
 	// if the setup was faster than the http client timeout, wait
-	if delta < dg.Client.Timeout.Seconds() {
-		time.Sleep(time.Duration(to-delta) * time.Second)
+	if delta.Seconds() < to {
+		time.Sleep(time.Duration(to-delta.Seconds()) * time.Second)
 	}
-	logger.Success(fmt.Sprintf("Bot started as %s", dg.State.User.Username))
+	dg.LogInfo("Bot started as %s", dg.State.User.Username)
 	NewTimer(30*time.Second, func(stop chan<- interface{}) {
 		if b.Status == nil {
 			stop <- struct{}{}
@@ -130,7 +134,7 @@ func (b *Bot) Start() {
 			err = ErrBadStatusType
 		}
 		if err != nil {
-			logger.Alert("bot.go - Update status", err.Error())
+			dg.LogError(err, "updating status")
 			err = nil
 		}
 	})
@@ -139,19 +143,19 @@ func (b *Bot) Start() {
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
 
-	logger.Success("Bot shutting down")
+	dg.LogInfo("Stopping bot")
 
 	if Debug {
-		logger.Debug("Unregistering local commands")
+		dg.LogDebug("Unregistering local commands")
 		b.unregisterGuildCommands(dg)
 	}
 
 	err = dg.Close() // Bot Shutdown
 	if err != nil {
-		logger.Alert("bot.go - Shutdown", err.Error())
+		dg.LogError(err, "closing bot")
 	}
 
-	logger.Success("Bot shut down")
+	dg.LogInfo("Bot shut down")
 }
 
 func (b *Bot) AddHandler(handler any) {

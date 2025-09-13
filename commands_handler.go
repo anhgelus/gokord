@@ -4,22 +4,22 @@ import (
 	"errors"
 
 	"github.com/anhgelus/gokord/cmd"
-	"github.com/anhgelus/gokord/logger"
 	discordgo "github.com/nyttikord/gokord"
 )
 
 var (
-	ErrSubsAreNil = errors.New("subs are nil in general handler")
+	ErrSubsAreNil         = errors.New("subs are nil in general handler")
+	ErrSubCommandNotFound = errors.New("sub command not found")
 )
 
 // generalHandler used for subcommand
 func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreate, _ cmd.OptionMap, resp *cmd.ResponseBuilder) {
 	data := i.CommandData()
-	sendWarn := func(msg string, msgSend string, more ...interface{}) {
-		logger.Warn(msg, "name", data.Name, more)
+	sendWarn := func(msg string, msgSend string) {
+		s.LogError(ErrSubCommandNotFound, "%s: %s", data.Name, msg)
 		err := resp.IsEphemeral().SetMessage(msgSend).Send()
 		if err != nil {
-			logger.Alert("commands_handler.go - "+msgSend+" reply", err.Error())
+			s.LogError(err, "sending error")
 		}
 	}
 	if len(data.Options) == 0 {
@@ -42,10 +42,10 @@ func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreat
 		return
 	}
 	if c.GetSubs() == nil {
-		logger.Alert("commands_handler.go - Checking subs", ErrSubsAreNil.Error())
+		s.LogError(ErrSubsAreNil, "subs are nil in general handler")
 		err := resp.IsEphemeral().SetMessage("Internal error, please report it").Send()
 		if err != nil {
-			logger.Alert("commands_handler.go - Internal error reply", err.Error())
+			s.LogError(err, "sending error")
 		}
 		return
 	}
@@ -55,5 +55,5 @@ func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreat
 			return
 		}
 	}
-	sendWarn("Subcommand not found", "Subcommand not found", "subInfo Name", subInfo.Name)
+	sendWarn("Subcommand not found", "Subcommand not found")
 }
