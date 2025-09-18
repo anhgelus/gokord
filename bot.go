@@ -162,7 +162,7 @@ func (b *Bot) AddHandler(handler any) {
 	b.handlers = append(b.handlers, handler)
 }
 
-func (b *Bot) HandleModal(handler func(*discordgo.Session, *discordgo.InteractionCreate, interaction.ModalSubmitData, *cmd.ResponseBuilder),
+func (b *Bot) HandleModal(handler func(*discordgo.Session, *discordgo.InteractionCreate, *interaction.ModalSubmitData, *cmd.ResponseBuilder),
 	id string) {
 	b.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if i.Type != types.InteractionModalSubmit {

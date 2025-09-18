@@ -3,7 +3,7 @@ module github.com/anhgelus/gokord
 go 1.24.0
 
 require (
-	github.com/nyttikord/gokord v0.30.1-0.20250913143152-425cd430dee0
+	github.com/nyttikord/gokord v0.30.1-0.20250918171410-c7667e5caf21
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/redis/go-redis/v9 v9.14.0
 	gorm.io/gorm v1.31.0
