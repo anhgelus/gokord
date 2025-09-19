@@ -177,7 +177,7 @@ func (b *Bot) HandleModal(handler func(*discordgo.Session, *discordgo.Interactio
 	})
 }
 
-func (b *Bot) HandleMessageComponent(handler func(*discordgo.Session, *discordgo.InteractionCreate, interaction.MessageComponentData, *cmd.ResponseBuilder),
+func (b *Bot) HandleMessageComponent(handler func(*discordgo.Session, *discordgo.InteractionCreate, *interaction.MessageComponentData, *cmd.ResponseBuilder),
 	id string) {
 	b.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if i.Type != types.InteractionMessageComponent {
