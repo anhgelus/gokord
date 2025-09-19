@@ -121,7 +121,7 @@ func (b *Bot) getCommandsUpdate() *InnovationCommands {
 			if slices.Contains(cmds.Removed, c) {
 				// remove from "removed" and add to "updated"
 				id = slices.Index(cmds.Removed, c)
-				slices.Replace(cmds.Removed, id, id+1)
+				cmds.Removed = slices.Replace(cmds.Removed, id, id+1)
 				cmds.Updated = append(cmds.Updated, c)
 			} else {
 				cmds.Added = append(cmds.Added, c)
@@ -131,7 +131,7 @@ func (b *Bot) getCommandsUpdate() *InnovationCommands {
 			if slices.Contains(cmds.Removed, c) {
 				// remove from "removed" and add to "added"
 				id = slices.Index(cmds.Removed, c)
-				slices.Replace(cmds.Removed, id, id+1)
+				cmds.Removed = slices.Replace(cmds.Removed, id, id+1)
 				cmds.Added = append(cmds.Added, c)
 			} else if slices.Contains(cmds.Added, c) {
 				// do nothing
@@ -143,11 +143,11 @@ func (b *Bot) getCommandsUpdate() *InnovationCommands {
 			if slices.Contains(cmds.Added, c) {
 				// remove from "added"
 				id = slices.Index(cmds.Added, c)
-				slices.Replace(cmds.Added, id, id+1)
+				cmds.Added = slices.Replace(cmds.Added, id, id+1)
 			} else if slices.Contains(cmds.Updated, c) {
 				// remove from "updated" and add to "removed"
 				id = slices.Index(cmds.Updated, c)
-				slices.Replace(cmds.Updated, id, id+1)
+				cmds.Updated = slices.Replace(cmds.Updated, id, id+1)
 				cmds.Removed = append(cmds.Removed, c)
 			} else {
 				cmds.Removed = append(cmds.Removed, c)

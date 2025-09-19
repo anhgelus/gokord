@@ -1,7 +1,6 @@
 package gokord
 
 import (
-	"fmt"
 	"slices"
 	"sync"
 
@@ -9,6 +8,7 @@ import (
 	discordgo "github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/interaction"
+	"github.com/nyttikord/gokord/logger"
 )
 
 var cmdMap map[string]cmd.CommandHandler = nil
@@ -118,12 +118,13 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 		o += 1
 	}
 	l := len(toUpdate)
-	msg := fmt.Sprintf("%d/%d commands has been created or updated", o, l)
+	var level logger.Level
 	if l != o {
-		s.LogWarn(msg)
+		level = logger.LevelWarn
 	} else {
-		s.LogInfo(msg)
+		level = logger.LevelInfo
 	}
+	s.Log(level, 0, "%d/%d commands has been created or updated", o, l)
 }
 
 // setupCommandsHandlers of the Bot

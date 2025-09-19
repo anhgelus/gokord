@@ -26,7 +26,7 @@ func pingCommand(s *discordgo.Session, i *discordgo.InteractionCreate, _ cmd2.Op
 		s.LogError(err, "connect timestamp from ID")
 		msg = ":ping_pong: Pong !"
 	} else {
-		s.LogDebug(timestamp.Format(time.UnixDate))
+		s.LogDebug("%s", timestamp.Format(time.UnixDate))
 		msg = fmt.Sprintf(
 			":ping_pong: Pong !\nLatence du bot : `%d ms`\nLatence de l'API discord : `%d ms`",
 			response.Timestamp.Sub(timestamp).Milliseconds(),
