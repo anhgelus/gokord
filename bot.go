@@ -70,6 +70,10 @@ func (b *Bot) Start() {
 		dg.ChangeLevel(logger.LevelDebug)
 	}
 
+	for _, handler := range b.handlers {
+		dg.AddHandler(handler)
+	}
+
 	err := dg.Open() // Starts the bot
 	if err != nil {
 		dg.LogError(err, "starting bot")
@@ -87,9 +91,6 @@ func (b *Bot) Start() {
 	}()
 	b.setupCommandsHandlers(dg)
 
-	for _, handler := range b.handlers {
-		dg.AddHandler(handler)
-	}
 	if Debug {
 		dg.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			dg.LogDebug("Interaction received")

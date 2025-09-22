@@ -16,13 +16,15 @@ type Version struct {
 }
 
 type InnovationJson struct {
-	Version  string              `json:"version"`
-	Commands *InnovationCommands `json:"commands"`
+	Version   string              `json:"version"`
+	Commands  *InnovationCommands `json:"commands"`
+	Changelog string              `json:"changelog,omitempty"`
 }
 
 type Innovation struct {
-	Version  *Version
-	Commands *InnovationCommands
+	Version   *Version
+	Commands  *InnovationCommands
+	Changelog string
 }
 
 type InnovationCommands struct {
@@ -47,14 +49,15 @@ func LoadInnovationFromJson(b []byte) ([]*Innovation, error) {
 			return nil, err
 		}
 		is[i] = &Innovation{
-			Version:  &v,
-			Commands: item.Commands,
+			Version:   &v,
+			Commands:  item.Commands,
+			Changelog: item.Changelog,
 		}
 	}
 	return is, nil
 }
 
-func (b *Bot) getCommandsUpdate() *InnovationCommands {
+func (b *Bot) getCommandsUpdate() (*Innovation, bool) {
 	remaining := b.Innovations
 	slices.SortFunc(remaining, func(a, b *Innovation) int {
 		return a.Version.ForSort(b.Version)
@@ -63,38 +66,38 @@ func (b *Bot) getCommandsUpdate() *InnovationCommands {
 	l := len(remaining)
 	if l == 0 {
 		b.LogInfo("no updates available")
-		return &InnovationCommands{}
+		return &Innovation{}, false
 	}
 	lat := remaining[0]
 	if lat == nil || lat.Version == nil {
-		return nil
+		return nil, false
 	}
 	// loading bot data
 	botData := BotData{Name: b.Name}
 	err := botData.Load()
 	if err != nil {
 		b.LogError(err, "loading bot data for commands update, name: %s", botData.Name)
-		return nil
+		return nil, false
 	}
 	// parse version of the bot
 	ver, err := ParseVersion(botData.Version)
 	if err != nil {
 		b.LogError(err, "parsing version to compare for commands update, version: %s", botData.Version)
-		return nil
+		return nil, false
 	}
 	b.LogDebug("last version and version of bot", "last", lat.Version, "version of bot", ver)
 	// if there is no update to do
 	if !ver.Is(&NilVersion) {
 		if lat.Version.Is(&ver) {
 			b.LogInfo("no updates available")
-			return &InnovationCommands{}
+			return &Innovation{}, false
 		} else if !lat.Version.NewerThan(&ver) {
 			b.LogInfo(
 				"bot has a newer version (%s) than the latest version available (%s)",
 				botData.Version,
 				lat.Version,
 			)
-			return &InnovationCommands{}
+			return &Innovation{}, false
 		}
 	}
 	// get available versions
@@ -154,7 +157,8 @@ func (b *Bot) getCommandsUpdate() *InnovationCommands {
 			}
 		}
 	}
-	return cmds
+	lat.Commands = cmds
+	return lat, true
 }
 
 func ParseVersion(s string) (Version, error) {

@@ -1,6 +1,7 @@
 package gokord
 
 import (
+	"fmt"
 	"slices"
 	"sync"
 
@@ -27,7 +28,10 @@ func (b *Bot) updateCommands(s *discordgo.Session) {
 			AddIntegrationType(types.IntegrationInstallUser),
 	)
 
-	update := b.getCommandsUpdate()
+	update, do := b.getCommandsUpdate()
+	if !do {
+		return
+	}
 	if update == nil {
 		s.LogWarn("Update is nil, returning.")
 		return
@@ -38,17 +42,30 @@ func (b *Bot) updateCommands(s *discordgo.Session) {
 	if !Debug {
 		wg.Add(1)
 		go func() {
-			b.removeCommands(s, update)
+			b.removeCommands(s, update.Commands)
 			wg.Done()
 		}()
 	}
 	wg.Add(1)
 	go func() {
-		b.registerCommands(s, update)
+		b.registerCommands(s, update.Commands)
 		wg.Done()
 	}()
 	wg.Wait()
 	b.Version.UpdateBotVersion(b)
+	// sending changelog to guilds
+	if update.Changelog == "" {
+		return
+	}
+	for _, g := range s.State.Guilds {
+		if g.PublicUpdatesChannelID != "" {
+			changelog := fmt.Sprintf("## Nouveauté de la %s\n%s", update.Version, update.Changelog)
+			_, err := s.ChannelAPI().MessageSend(g.PublicUpdatesChannelID, changelog)
+			if err != nil {
+				b.LogError(err, "sending changelog to guild %s", g.ID)
+			}
+		}
+	}
 }
 
 // removeCommands delete commands of InnovationCommands.Removed
