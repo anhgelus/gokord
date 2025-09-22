@@ -99,9 +99,9 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 
 	// set toUpdate and guildID
 	if Debug {
-		gs, err := s.GuildAPI().UserGuilds(1, "", "", false)
-		if err != nil {
-			s.LogError(err, "fetching guilds for debug")
+		gs := s.State.Guilds
+		if len(gs) == 1 {
+			s.LogError(fmt.Errorf("no cached guilds"), "fetching guilds for debug")
 			return
 		} else {
 			guildID = gs[0].ID
@@ -124,15 +124,26 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 	// update everything needed
 	appID := s.State.User.ID
 	o := 0
-	for _, cb := range toUpdate {
-		c, err := s.InteractionAPI().CommandCreate(appID, guildID, cb.ApplicationCommand())
-		if err != nil {
-			s.LogError(err, "creating guild command %s", cb.GetName())
-			continue
+	if Debug {
+		for _, cb := range toUpdate {
+			registeredCommands = append(registeredCommands, cb.ApplicationCommand())
 		}
-		registeredCommands = append(registeredCommands, c)
-		s.LogInfo("Command %s initialized", cb.GetName())
-		o += 1
+		created, err := s.InteractionAPI().CommandBulkOverwrite(appID, guildID, registeredCommands)
+		if err != nil {
+			s.LogError(err, "registering guild commands")
+		}
+		registeredCommands = created
+		o = len(registeredCommands)
+	} else {
+		for _, cb := range toUpdate {
+			c, err := s.InteractionAPI().CommandCreate(appID, "", cb.ApplicationCommand())
+			if err != nil {
+				s.LogError(err, "registering command %s", cb.GetName())
+				continue
+			}
+			registeredCommands = append(registeredCommands, c)
+			o += 1
+		}
 	}
 	l := len(toUpdate)
 	var level logger.Level

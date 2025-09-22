@@ -146,11 +146,6 @@ func (b *Bot) Start() {
 
 	dg.LogInfo("Stopping bot")
 
-	if Debug {
-		dg.LogDebug("Unregistering local commands")
-		b.unregisterGuildCommands(dg)
-	}
-
 	err = dg.Close() // Bot Shutdown
 	if err != nil {
 		dg.LogError(err, "closing bot")
