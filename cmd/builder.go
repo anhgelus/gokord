@@ -1,12 +1,13 @@
 package cmd
 
 import (
-	discordgo "github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/interaction"
 )
 
-type CommandHandler func(s *discordgo.Session, i *discordgo.InteractionCreate, optMap OptionMap, resp *ResponseBuilder)
+type CommandHandler func(s bot.Session, i *event.InteractionCreate, optMap OptionMap, resp *ResponseBuilder)
 
 type CommandBuilder interface {
 	// SetHandler of the CommandBuilder (if it contains subcommand, it will never be called)

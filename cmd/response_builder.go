@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	discordgo "github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/component"
 	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/interaction"
 )
 
@@ -27,11 +28,11 @@ type ResponseBuilder struct {
 	title      string
 	customID   string
 	//
-	interaction *discordgo.InteractionCreate
-	session     *discordgo.Session
+	interaction *event.InteractionCreate
+	session     bot.Session
 }
 
-func NewResponseBuilder(s *discordgo.Session, i *discordgo.InteractionCreate) *ResponseBuilder {
+func NewResponseBuilder(s bot.Session, i *event.InteractionCreate) *ResponseBuilder {
 	return &ResponseBuilder{
 		interaction: i,
 		session:     s,
@@ -164,11 +165,11 @@ func (res *ResponseBuilder) AddEmbed(e *channel.MessageEmbed) *ResponseBuilder {
 	t := time.Now()
 	e.Footer = &channel.MessageEmbedFooter{
 		Text:    "by " + Author,
-		IconURL: res.session.State.User.AvatarURL(""),
+		IconURL: res.session.SessionState().User().AvatarURL(""),
 	}
 	e.Timestamp = t.Format(time.RFC3339)
 	e.Author = &channel.MessageEmbedAuthor{
-		Name: res.session.State.User.Username,
+		Name: res.session.SessionState().User().Username,
 	}
 	if res.embeds == nil {
 		res.embeds = []*channel.MessageEmbed{e}

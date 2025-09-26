@@ -32,7 +32,7 @@ func GetTimestampFromId(id string) (time.Time, error) {
 
 // ComesFromDM returns true if a message comes from a DM channel
 func ComesFromDM(s *discordgo.Session, id string) (bool, error) {
-	channel, err := s.State.Channel(id)
+	channel, err := s.ChannelAPI().State.Channel(id)
 	if err != nil {
 		if channel, err = s.ChannelAPI().Channel(id); err != nil {
 			return false, err

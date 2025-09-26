@@ -1,13 +1,13 @@
 package cmd
 
 import (
-	discordgo "github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/interaction"
 )
 
 type OptionMap map[string]*interaction.CommandInteractionDataOption
 
-func GenerateOptionMap(i *discordgo.InteractionCreate) OptionMap {
+func GenerateOptionMap(i *event.InteractionCreate) OptionMap {
 	options := i.CommandData().Options
 	optionMap := make(OptionMap, len(options))
 	for _, opt := range options {
@@ -16,7 +16,7 @@ func GenerateOptionMap(i *discordgo.InteractionCreate) OptionMap {
 	return optionMap
 }
 
-func GenerateOptionMapForSubcommand(i *discordgo.InteractionCreate) OptionMap {
+func GenerateOptionMapForSubcommand(i *event.InteractionCreate) OptionMap {
 	options := i.CommandData().Options[0].Options
 	optionMap := make(OptionMap, len(options))
 	for _, opt := range options {

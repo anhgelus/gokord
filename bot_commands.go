@@ -7,7 +7,9 @@ import (
 
 	"github.com/anhgelus/gokord/cmd"
 	discordgo "github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/interaction"
 	"github.com/nyttikord/gokord/logger"
 )
@@ -57,7 +59,7 @@ func (b *Bot) updateCommands(s *discordgo.Session) {
 	if update.Changelog == "" {
 		return
 	}
-	for _, g := range s.State.Guilds {
+	for g := range s.GuildAPI().State.Guilds() {
 		if g.PublicUpdatesChannelID != "" {
 			changelog := fmt.Sprintf("## Nouveauté de la %s\n%s", update.Version, update.Changelog)
 			_, err := s.ChannelAPI().MessageSend(g.PublicUpdatesChannelID, changelog)
@@ -70,7 +72,7 @@ func (b *Bot) updateCommands(s *discordgo.Session) {
 
 // removeCommands delete commands of InnovationCommands.Removed
 func (b *Bot) removeCommands(s *discordgo.Session, update *InnovationCommands) {
-	appID := s.State.User.ID
+	appID := s.SessionState().User().ID
 	cmdRegistered, err := s.InteractionAPI().Commands(appID, "")
 	if err != nil {
 		s.LogError(err, "fetching slash commands")
@@ -99,12 +101,15 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 
 	// set toUpdate and guildID
 	if Debug {
-		gs := s.State.Guilds
-		if len(gs) == 1 {
+		gs := s.GuildAPI().State.Guilds()
+		// i can't do something else because Guilds returns an iter
+		for g := range gs {
+			guildID = g.ID
+			break
+		}
+		if guildID == "" {
 			s.LogError(fmt.Errorf("no cached guilds"), "fetching guilds for debug")
 			return
-		} else {
-			guildID = gs[0].ID
 		}
 		// all commands (because it is in Debug)
 		toUpdate = b.Commands
@@ -122,7 +127,7 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 	}
 
 	// update everything needed
-	appID := s.State.User.ID
+	appID := s.SessionState().User().ID
 	o := 0
 	if Debug {
 		for _, cb := range toUpdate {
@@ -170,7 +175,7 @@ func (b *Bot) setupCommandsHandlers(s *discordgo.Session) {
 		}
 		cmdMap["ping"] = pingCommand
 	}
-	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	s.EventManager().AddHandler(func(s bot.Session, i *event.InteractionCreate) {
 		if i.Type != types.InteractionApplicationCommand {
 			return
 		}
@@ -197,7 +202,7 @@ func (b *Bot) unregisterGuildCommands(s *discordgo.Session) {
 	for _, v := range registeredCommands {
 		wg.Add(1)
 		go func() {
-			err = s.InteractionAPI().CommandDelete(s.State.User.ID, guildID, v.ID)
+			err = s.InteractionAPI().CommandDelete(s.SessionState().User().ID, guildID, v.ID)
 			if err != nil {
 				s.LogError(err, "deleting command %s (%s)", v.Name, v.ID)
 			}

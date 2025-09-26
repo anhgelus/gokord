@@ -12,8 +12,10 @@ import (
 
 	"github.com/anhgelus/gokord/cmd"
 	discordgo "github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/interaction"
 	"github.com/nyttikord/gokord/logger"
 )
@@ -71,7 +73,7 @@ func (b *Bot) Start() {
 	}
 
 	for _, handler := range b.handlers {
-		dg.AddHandler(handler)
+		dg.EventManager().AddHandler(handler)
 	}
 
 	err := dg.Open() // Starts the bot
@@ -92,7 +94,7 @@ func (b *Bot) Start() {
 	b.setupCommandsHandlers(dg)
 
 	if Debug {
-		dg.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		dg.EventManager().AddHandler(func(s bot.Session, i event.InteractionCreate) {
 			dg.LogDebug("Interaction received")
 			data, _ := json.Marshal(i)
 			dg.LogDebug("%s", data)
@@ -110,7 +112,7 @@ func (b *Bot) Start() {
 	if delta.Seconds() < to {
 		time.Sleep(time.Duration(to-delta.Seconds()) * time.Second)
 	}
-	dg.LogInfo("Bot started as %s", dg.State.User.Username)
+	dg.LogInfo("Bot started as %s", dg.SessionState().User().Username)
 	NewTimer(30*time.Second, func(stop chan<- interface{}) {
 		if b.Status == nil {
 			stop <- struct{}{}
@@ -120,17 +122,17 @@ func (b *Bot) Start() {
 		r := rand.New(rand.NewPCG(uint64(time.Now().Unix()), uint64(l))).UintN(uint(l))
 		s := b.Status[r]
 		if s.Type == GameStatus {
-			err = dg.UpdateGameStatus(0, s.Content)
+			err = dg.BotAPI().UpdateGameStatus(0, s.Content)
 		} else if s.Type == WatchStatus {
-			err = dg.UpdateWatchStatus(0, s.Content)
+			err = dg.BotAPI().UpdateWatchStatus(0, s.Content)
 		} else if s.Type == StreamingStatus {
 			if s.Url == "" {
 				err = ErrStatusUrlNotFound
 			} else {
-				err = dg.UpdateStreamingStatus(0, s.Content, s.Url)
+				err = dg.BotAPI().UpdateStreamingStatus(0, s.Content, s.Url)
 			}
 		} else if s.Type == ListeningStatus {
-			err = dg.UpdateListeningStatus(s.Content)
+			err = dg.BotAPI().UpdateListeningStatus(s.Content)
 		} else {
 			err = ErrBadStatusType
 		}
@@ -158,9 +160,9 @@ func (b *Bot) AddHandler(handler any) {
 	b.handlers = append(b.handlers, handler)
 }
 
-func (b *Bot) HandleModal(handler func(*discordgo.Session, *discordgo.InteractionCreate, *interaction.ModalSubmitData, *cmd.ResponseBuilder),
+func (b *Bot) HandleModal(handler func(bot.Session, *event.InteractionCreate, *interaction.ModalSubmitData, *cmd.ResponseBuilder),
 	id string) {
-	b.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	b.AddHandler(func(s bot.Session, i *event.InteractionCreate) {
 		if i.Type != types.InteractionModalSubmit {
 			return
 		}
@@ -173,9 +175,9 @@ func (b *Bot) HandleModal(handler func(*discordgo.Session, *discordgo.Interactio
 	})
 }
 
-func (b *Bot) HandleMessageComponent(handler func(*discordgo.Session, *discordgo.InteractionCreate, *interaction.MessageComponentData, *cmd.ResponseBuilder),
+func (b *Bot) HandleMessageComponent(handler func(bot.Session, *event.InteractionCreate, *interaction.MessageComponentData, *cmd.ResponseBuilder),
 	id string) {
-	b.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	b.AddHandler(func(s bot.Session, i *event.InteractionCreate) {
 		if i.Type != types.InteractionMessageComponent {
 			return
 		}

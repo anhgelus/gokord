@@ -4,7 +4,8 @@ import (
 	"errors"
 
 	"github.com/anhgelus/gokord/cmd"
-	discordgo "github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/bot"
+	"github.com/nyttikord/gokord/event"
 )
 
 var (
@@ -13,7 +14,7 @@ var (
 )
 
 // generalHandler used for subcommand
-func (b *Bot) generalHandler(s *discordgo.Session, i *discordgo.InteractionCreate, _ cmd.OptionMap, resp *cmd.ResponseBuilder) {
+func (b *Bot) generalHandler(s bot.Session, i *event.InteractionCreate, _ cmd.OptionMap, resp *cmd.ResponseBuilder) {
 	data := i.CommandData()
 	sendWarn := func(msg string, msgSend string) {
 		s.LogError(ErrSubCommandNotFound, "%s: %s", data.Name, msg)

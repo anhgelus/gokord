@@ -5,10 +5,12 @@ import (
 	"time"
 
 	cmd2 "github.com/anhgelus/gokord/cmd"
-	discordgo "github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/bot"
+	"github.com/nyttikord/gokord/event"
 )
 
-func pingCommand(s *discordgo.Session, i *discordgo.InteractionCreate, _ cmd2.OptionMap, resp *cmd2.ResponseBuilder) {
+func pingCommand(s bot.Session, i *event.InteractionCreate, _ cmd2.OptionMap, resp *cmd2.ResponseBuilder) {
 	if err := resp.IsDeferred().Send(); err != nil { // sends the "is thinking..."
 		s.LogError(err, "respond interaction")
 		return
@@ -30,7 +32,7 @@ func pingCommand(s *discordgo.Session, i *discordgo.InteractionCreate, _ cmd2.Op
 		msg = fmt.Sprintf(
 			":ping_pong: Pong !\nLatence du bot : `%d ms`\nLatence de l'API discord : `%d ms`",
 			response.Timestamp.Sub(timestamp).Milliseconds(),
-			s.HeartbeatLatency().Milliseconds(),
+			s.(*gokord.Session).HeartbeatLatency().Milliseconds(),
 		)
 	}
 
