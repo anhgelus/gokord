@@ -94,7 +94,7 @@ func (b *Bot) Start() {
 	b.setupCommandsHandlers(dg)
 
 	if Debug {
-		dg.EventManager().AddHandler(func(s bot.Session, i event.InteractionCreate) {
+		dg.EventManager().AddHandler(func(s bot.Session, i *event.InteractionCreate) {
 			b.Logger.Debug("interaction received")
 			data, _ := json.Marshal(i)
 			b.Logger.Debug(string(data))
