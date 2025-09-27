@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/anhgelus/gokord/cmd"
-	"github.com/nyttikord/gokord/logger"
 	"github.com/pelletier/go-toml/v2"
 	"gorm.io/gorm"
 )
@@ -97,7 +96,8 @@ func LoadConfig(cfg interface{}, name string, defaultValues func(), marshal func
 		if !errors.Is(err, os.ErrNotExist) {
 			return err
 		}
-		logger.Log(logger.LevelWarn, 0, "File not found, creating a new one.")
+		// TEMP: better when the two gokord will be merged
+		slog.Warn("File not found, creating a new one.")
 		defaultValues()
 		c, err = marshal(cfg)
 		if err != nil {

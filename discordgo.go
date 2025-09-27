@@ -4,16 +4,16 @@ import (
 	"strconv"
 	"time"
 
-	discordgo "github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/user"
 )
 
 // FetchGuildUser returns the list of member in a guild
-func FetchGuildUser(s *discordgo.Session, guildID string) []*user.Member {
+func FetchGuildUser(s bot.Session, guildID string) []*user.Member {
 	member, err := s.GuildAPI().Members(guildID, "", 1000)
 	if err != nil {
-		s.LogError(err, "fetching guild users")
+		s.Logger().Error("fetching guild users", "error", err)
 	}
 	return member
 }
@@ -31,7 +31,7 @@ func GetTimestampFromId(id string) (time.Time, error) {
 }
 
 // ComesFromDM returns true if a message comes from a DM channel
-func ComesFromDM(s *discordgo.Session, id string) (bool, error) {
+func ComesFromDM(s bot.Session, id string) (bool, error) {
 	channel, err := s.ChannelAPI().State.Channel(id)
 	if err != nil {
 		if channel, err = s.ChannelAPI().Channel(id); err != nil {

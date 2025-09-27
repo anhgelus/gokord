@@ -17,10 +17,10 @@ var (
 func (b *Bot) generalHandler(s bot.Session, i *event.InteractionCreate, _ cmd.OptionMap, resp *cmd.ResponseBuilder) {
 	data := i.CommandData()
 	sendWarn := func(msg string, msgSend string) {
-		s.LogError(ErrSubCommandNotFound, "%s: %s", data.Name, msg)
+		b.Logger.Error(ErrSubCommandNotFound.Error(), "name", data.Name, "msg", msg)
 		err := resp.IsEphemeral().SetMessage(msgSend).Send()
 		if err != nil {
-			s.LogError(err, "sending error")
+			b.Logger.Error("sending error", "error", err)
 		}
 	}
 	if len(data.Options) == 0 {
@@ -43,10 +43,10 @@ func (b *Bot) generalHandler(s bot.Session, i *event.InteractionCreate, _ cmd.Op
 		return
 	}
 	if c.GetSubs() == nil {
-		s.LogError(ErrSubsAreNil, "subs are nil in general handler")
+		b.Logger.Error(ErrSubsAreNil.Error())
 		err := resp.IsEphemeral().SetMessage("Internal error, please report it").Send()
 		if err != nil {
-			s.LogError(err, "sending error")
+			b.Logger.Error("sending error", "error", err)
 		}
 		return
 	}
@@ -56,5 +56,5 @@ func (b *Bot) generalHandler(s bot.Session, i *event.InteractionCreate, _ cmd.Op
 			return
 		}
 	}
-	sendWarn("Subcommand not found", "Subcommand not found")
+	sendWarn("subcommand not found", "Subcommand not found")
 }

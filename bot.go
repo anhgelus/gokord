@@ -3,6 +3,7 @@ package gokord
 import (
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"math/rand/v2"
 	"os"
 	"os/signal"
@@ -17,7 +18,6 @@ import (
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/interaction"
-	"github.com/nyttikord/gokord/logger"
 )
 
 var (
@@ -42,7 +42,7 @@ const (
 
 // Bot is the representation of a discord bot
 type Bot struct {
-	logger.Logger
+	Logger      *slog.Logger
 	Token       string                     // Token of the Bot
 	Status      []*Status                  // Status of the Bot
 	Commands    []cmd.CommandBuilder       // Commands of the Bot, use New to create easily a new command
@@ -63,14 +63,14 @@ type Status struct {
 
 // Start the Bot (blocking instruction)
 func (b *Bot) Start() {
-	dg := discordgo.New("Bot " + b.Token) // New connection to the discord API with bot token
+	level := slog.LevelInfo
+	if Debug {
+		level = slog.LevelDebug
+	}
+	dg := discordgo.NewWithLogLevel("Bot "+b.Token, level) // New connection to the discord API with bot token
 
 	dg.Identify.Intents = b.Intents
-	b.Logger = dg
-
-	if Debug {
-		dg.ChangeLevel(logger.LevelDebug)
-	}
+	b.Logger = dg.Logger()
 
 	for _, handler := range b.handlers {
 		dg.EventManager().AddHandler(handler)
@@ -78,7 +78,7 @@ func (b *Bot) Start() {
 
 	err := dg.Open() // Starts the bot
 	if err != nil {
-		dg.LogError(err, "starting bot")
+		b.Logger.Error("starting bot", "error", err)
 		return
 	}
 
@@ -88,16 +88,16 @@ func (b *Bot) Start() {
 	wg.Add(1)
 	go func() {
 		b.updateCommands(dg)
-		dg.LogInfo("Commands updated in %s", time.Since(st))
+		b.Logger.Info("commands updated", "in", time.Since(st))
 		wg.Done()
 	}()
 	b.setupCommandsHandlers(dg)
 
 	if Debug {
 		dg.EventManager().AddHandler(func(s bot.Session, i event.InteractionCreate) {
-			dg.LogDebug("Interaction received")
+			b.Logger.Debug("interaction received")
 			data, _ := json.Marshal(i)
-			dg.LogDebug("%s", data)
+			b.Logger.Debug(string(data))
 		})
 	}
 	if b.AfterInit != nil {
@@ -112,7 +112,7 @@ func (b *Bot) Start() {
 	if delta.Seconds() < to {
 		time.Sleep(time.Duration(to-delta.Seconds()) * time.Second)
 	}
-	dg.LogInfo("Bot started as %s", dg.SessionState().User().Username)
+	b.Logger.Info("bot started", "as", dg.SessionState().User().Username)
 	NewTimer(30*time.Second, func(stop chan<- interface{}) {
 		if b.Status == nil {
 			stop <- struct{}{}
@@ -137,7 +137,7 @@ func (b *Bot) Start() {
 			err = ErrBadStatusType
 		}
 		if err != nil {
-			dg.LogError(err, "updating status")
+			b.Logger.Error("updating status", "error", err)
 			err = nil
 		}
 	})
@@ -146,14 +146,16 @@ func (b *Bot) Start() {
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
 
-	dg.LogInfo("Stopping bot")
+	b.Logger.Info("stopping bot")
 
 	err = dg.Close() // Bot Shutdown
 	if err != nil {
-		dg.LogError(err, "closing bot")
+		b.Logger.Error("closing bot", "error", err)
+		b.Logger.Warn("force closing")
+		dg.ForceClose()
 	}
 
-	dg.LogInfo("Bot shut down")
+	b.Logger.Info("bot shut down")
 }
 
 func (b *Bot) AddHandler(handler any) {

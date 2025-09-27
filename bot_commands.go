@@ -1,7 +1,9 @@
 package gokord
 
 import (
+	"context"
 	"fmt"
+	"log/slog"
 	"slices"
 	"sync"
 
@@ -11,7 +13,6 @@ import (
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/interaction"
-	"github.com/nyttikord/gokord/logger"
 )
 
 var cmdMap map[string]cmd.CommandHandler = nil
@@ -35,7 +36,7 @@ func (b *Bot) updateCommands(s *discordgo.Session) {
 		return
 	}
 	if update == nil {
-		s.LogWarn("Update is nil, returning.")
+		s.Logger().Warn("update is nil, returning")
 		return
 	}
 
@@ -64,7 +65,7 @@ func (b *Bot) updateCommands(s *discordgo.Session) {
 			changelog := fmt.Sprintf("## Nouveauté de la %s\n%s", update.Version, update.Changelog)
 			_, err := s.ChannelAPI().MessageSend(g.PublicUpdatesChannelID, changelog)
 			if err != nil {
-				b.LogError(err, "sending changelog to guild %s", g.ID)
+				b.Logger.Error("sending changelog to guild", "error", err, "guild", g.ID)
 			}
 		}
 	}
@@ -75,7 +76,7 @@ func (b *Bot) removeCommands(s *discordgo.Session, update *InnovationCommands) {
 	appID := s.SessionState().User().ID
 	cmdRegistered, err := s.InteractionAPI().Commands(appID, "")
 	if err != nil {
-		s.LogError(err, "fetching slash commands")
+		b.Logger.Error("fetching slash commands", "error", err)
 		return
 	}
 	for _, d := range update.Removed {
@@ -83,13 +84,13 @@ func (b *Bot) removeCommands(s *discordgo.Session, update *InnovationCommands) {
 			return d == e.Name
 		})
 		if id == -1 {
-			s.LogWarn("Command %s not registered, so it cannot be deleted", d)
+			b.Logger.Warn("command not registered, so it cannot be deleted", "command", d)
 			continue
 		}
 		c := cmdRegistered[id]
 		err = s.InteractionAPI().CommandDelete(appID, "", cmdRegistered[id].ApplicationID)
 		if err != nil {
-			s.LogError(err, "deleting command %s (%s)", c.Name, c.ID)
+			b.Logger.Error("deleting command", "error", err, "name", c.Name, "id", c.ID)
 		}
 	}
 }
@@ -102,13 +103,13 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 	// set toUpdate and guildID
 	if Debug {
 		gs := s.GuildAPI().State.Guilds()
-		// i can't do something else because Guilds returns an iter
+		// This is ugly, but I can't do something else because Guilds returns an iter
 		for g := range gs {
 			guildID = g.ID
 			break
 		}
 		if guildID == "" {
-			s.LogError(fmt.Errorf("no cached guilds"), "fetching guilds for debug")
+			b.Logger.Error("fetching guilds for debug", "error", fmt.Errorf("no cached guilds"))
 			return
 		}
 		// all commands (because it is in Debug)
@@ -119,10 +120,10 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 				return c == e.GetName()
 			})
 			if id == -1 {
-				s.LogWarn("Impossible to find command %s", c)
-				continue
+				b.Logger.Warn("impossible to find command", "command", c)
+			} else {
+				toUpdate = append(toUpdate, b.Commands[id])
 			}
-			toUpdate = append(toUpdate, b.Commands[id])
 		}
 	}
 
@@ -135,7 +136,7 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 		}
 		created, err := s.InteractionAPI().CommandBulkOverwrite(appID, guildID, registeredCommands)
 		if err != nil {
-			s.LogError(err, "registering guild commands")
+			b.Logger.Error("registering guild commands", "error", err)
 		}
 		registeredCommands = created
 		o = len(registeredCommands)
@@ -143,7 +144,7 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 		for _, cb := range toUpdate {
 			c, err := s.InteractionAPI().CommandCreate(appID, "", cb.ApplicationCommand())
 			if err != nil {
-				s.LogError(err, "registering command %s", cb.GetName())
+				b.Logger.Error("registering command", "error", err, "command", cb.GetName())
 				continue
 			}
 			registeredCommands = append(registeredCommands, c)
@@ -151,13 +152,13 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 		}
 	}
 	l := len(toUpdate)
-	var level logger.Level
+	var level slog.Level
 	if l != o {
-		level = logger.LevelWarn
+		level = slog.LevelWarn
 	} else {
-		level = logger.LevelInfo
+		level = slog.LevelInfo
 	}
-	s.Log(level, 0, "%d/%d commands has been created or updated", o, l)
+	s.Logger().Log(context.Background(), level, "commands setups finished", "updated", o, "to update", l)
 }
 
 // setupCommandsHandlers of the Bot
@@ -165,9 +166,9 @@ func (b *Bot) setupCommandsHandlers(s *discordgo.Session) {
 	if cmdMap == nil || len(cmdMap) == 0 {
 		cmdMap = make(map[string]cmd.CommandHandler, len(b.Commands))
 		for _, c := range b.Commands {
-			s.LogDebug("Setup handler for command %s", c.GetName())
+			b.Logger.Debug("setup handler", "command", c.GetName())
 			if c.HasSub() {
-				b.LogDebug("Using general handler for command %s", c.GetName())
+				b.Logger.Debug("using general handler", "command", c.GetName())
 				cmdMap[c.GetName()] = b.generalHandler
 			} else {
 				cmdMap[c.GetName()] = c.GetHandler()
@@ -194,7 +195,7 @@ func (b *Bot) unregisterGuildCommands(s *discordgo.Session) {
 	}
 	gs, err := s.GuildAPI().UserGuilds(1, "", "", false)
 	if err != nil {
-		s.LogError(err, "fetching guilds for debug")
+		b.Logger.Error("fetching guilds for debug", "error", err)
 		return
 	}
 	guildID := gs[0].ID
@@ -204,7 +205,7 @@ func (b *Bot) unregisterGuildCommands(s *discordgo.Session) {
 		go func() {
 			err = s.InteractionAPI().CommandDelete(s.SessionState().User().ID, guildID, v.ID)
 			if err != nil {
-				s.LogError(err, "deleting command %s (%s)", v.Name, v.ID)
+				b.Logger.Error("deleting command", "error", err, "name", v.Name, "id", v.ID)
 			}
 			wg.Done()
 		}()

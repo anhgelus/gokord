@@ -65,7 +65,7 @@ func (b *Bot) getCommandsUpdate() (*Innovation, bool) {
 	slices.Reverse(remaining)
 	l := len(remaining)
 	if l == 0 {
-		b.LogInfo("no updates available")
+		b.Logger.Info("no updates available")
 		return &Innovation{}, false
 	}
 	lat := remaining[0]
@@ -76,26 +76,26 @@ func (b *Bot) getCommandsUpdate() (*Innovation, bool) {
 	botData := BotData{Name: b.Name}
 	err := botData.Load()
 	if err != nil {
-		b.LogError(err, "loading bot data for commands update, name: %s", botData.Name)
+		b.Logger.Error("loading bot data for commands update", "error", err, "name", botData.Name)
 		return nil, false
 	}
 	// parse version of the bot
 	ver, err := ParseVersion(botData.Version)
 	if err != nil {
-		b.LogError(err, "parsing version to compare for commands update, version: %s", botData.Version)
+		b.Logger.Error("parsing version to compare for commands update", "error", err, "version", botData.Version)
 		return nil, false
 	}
-	b.LogDebug("last version and version of bot", "last", lat.Version, "version of bot", ver)
+	b.Logger.Debug("last version and version of bot", "last", lat.Version, "version of bot", ver)
 	// if there is no update to do
 	if !ver.Is(&NilVersion) {
 		if lat.Version.Is(&ver) {
-			b.LogInfo("no updates available")
+			b.Logger.Info("no updates available")
 			return &Innovation{}, false
 		} else if !lat.Version.NewerThan(&ver) {
-			b.LogInfo(
-				"bot has a newer version (%s) than the latest version available (%s)",
-				botData.Version,
-				lat.Version,
+			b.Logger.Info(
+				"bot has a newer version than the latest version available",
+				"bot", botData.Version,
+				"latest", lat.Version,
 			)
 			return &Innovation{}, false
 		}
@@ -203,16 +203,16 @@ func (v *Version) UpdateBotVersion(bot *Bot) {
 	botData := BotData{Name: bot.Name}
 	err := botData.Load()
 	if err != nil {
-		bot.LogError(err, "loading bot data for update version")
+		bot.Logger.Error("loading bot data for update version", "error", err)
 		return
 	}
 	botData.Version = v.String()
 	err = botData.Save()
 	if err != nil {
-		bot.LogError(err, "saving bot data for update version")
+		bot.Logger.Error("saving bot data for update version", "error", err)
 		return
 	}
-	bot.LogInfo("Updated version of the bot")
+	bot.Logger.Info("Updated version of the bot")
 }
 
 func (v *Version) SetMajor(m uint) *Version {
