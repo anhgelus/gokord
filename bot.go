@@ -51,6 +51,7 @@ type Bot struct {
 	Innovations []*Innovation
 	Name        string
 	Intents     discord.Intent
+	timerCancel chan<- interface{}
 }
 
 // Status contains all required information for updating the status
@@ -108,6 +109,10 @@ func (b *Bot) Start() {
 
 	b.Logger.Info("stopping bot")
 
+	if b.timerCancel != nil {
+		b.timerCancel <- struct{}{}
+	}
+
 	err = dg.Close() // Bot Shutdown
 	if err != nil {
 		b.Logger.Error("closing bot", "error", err)
@@ -118,9 +123,9 @@ func (b *Bot) Start() {
 	b.Logger.Info("bot shut down")
 }
 
-func (b *Bot) onReady(s bot.Session, r *event.Ready) {
+func (b *Bot) onReady(s bot.Session, _ *event.Ready) {
 	b.Logger.Info("bot started", "as", s.SessionState().User().Username)
-	NewTimer(30*time.Second, func(stop chan<- interface{}) {
+	b.timerCancel = NewTimer(30*time.Second, func(stop chan<- interface{}) {
 		if b.Status == nil {
 			stop <- struct{}{}
 			return

@@ -13,6 +13,8 @@ func NewTimer(d time.Duration, fn func(chan<- interface{})) chan<- interface{} {
 	ticker := time.NewTicker(d)
 	quit := make(chan interface{})
 	go func() {
+		// first run
+		fn(quit)
 		for {
 			select {
 			case <-ticker.C:
