@@ -7,7 +7,6 @@ import (
 	"math/rand/v2"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 	"time"
 
@@ -72,6 +71,8 @@ func (b *Bot) Start() {
 	dg.Identify.Intents = b.Intents
 	b.Logger = dg.Logger()
 
+	dg.EventManager().AddHandler(b.onReady)
+
 	for _, handler := range b.handlers {
 		dg.EventManager().AddHandler(handler)
 	}
@@ -82,14 +83,11 @@ func (b *Bot) Start() {
 		return
 	}
 
-	var wg sync.WaitGroup
-	st := time.Now()
 	// register commands
-	wg.Add(1)
 	go func() {
+		st := time.Now()
 		b.updateCommands(dg)
 		b.Logger.Info("commands updated", "in", time.Since(st))
-		wg.Done()
 	}()
 	b.setupCommandsHandlers(dg)
 
@@ -103,44 +101,6 @@ func (b *Bot) Start() {
 	if b.AfterInit != nil {
 		b.AfterInit(dg)
 	}
-
-	// wait until all setup goroutines are finished
-	wg.Wait()
-	delta := time.Since(st)
-	to := dg.Client.Timeout.Seconds()
-	// if the setup was faster than the http client timeout, wait
-	if delta.Seconds() < to {
-		time.Sleep(time.Duration(to-delta.Seconds()) * time.Second)
-	}
-	b.Logger.Info("bot started", "as", dg.SessionState().User().Username)
-	NewTimer(30*time.Second, func(stop chan<- interface{}) {
-		if b.Status == nil {
-			stop <- struct{}{}
-			return
-		}
-		l := len(b.Status)
-		r := rand.New(rand.NewPCG(uint64(time.Now().Unix()), uint64(l))).UintN(uint(l))
-		s := b.Status[r]
-		if s.Type == GameStatus {
-			err = dg.BotAPI().UpdateGameStatus(0, s.Content)
-		} else if s.Type == WatchStatus {
-			err = dg.BotAPI().UpdateWatchStatus(0, s.Content)
-		} else if s.Type == StreamingStatus {
-			if s.Url == "" {
-				err = ErrStatusUrlNotFound
-			} else {
-				err = dg.BotAPI().UpdateStreamingStatus(0, s.Content, s.Url)
-			}
-		} else if s.Type == ListeningStatus {
-			err = dg.BotAPI().UpdateListeningStatus(s.Content)
-		} else {
-			err = ErrBadStatusType
-		}
-		if err != nil {
-			b.Logger.Error("updating status", "error", err)
-			err = nil
-		}
-	})
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
@@ -156,6 +116,39 @@ func (b *Bot) Start() {
 	}
 
 	b.Logger.Info("bot shut down")
+}
+
+func (b *Bot) onReady(s bot.Session, r *event.Ready) {
+	b.Logger.Info("bot started", "as", s.SessionState().User().Username)
+	NewTimer(30*time.Second, func(stop chan<- interface{}) {
+		if b.Status == nil {
+			stop <- struct{}{}
+			return
+		}
+		l := len(b.Status)
+		rnd := rand.New(rand.NewPCG(uint64(time.Now().Unix()), uint64(l))).UintN(uint(l))
+		status := b.Status[rnd]
+		var err error
+		if status.Type == GameStatus {
+			err = s.BotAPI().UpdateGameStatus(0, status.Content)
+		} else if status.Type == WatchStatus {
+			err = s.BotAPI().UpdateWatchStatus(0, status.Content)
+		} else if status.Type == StreamingStatus {
+			if status.Url == "" {
+				err = ErrStatusUrlNotFound
+			} else {
+				err = s.BotAPI().UpdateStreamingStatus(0, status.Content, status.Url)
+			}
+		} else if status.Type == ListeningStatus {
+			err = s.BotAPI().UpdateListeningStatus(status.Content)
+		} else {
+			err = ErrBadStatusType
+		}
+		if err != nil {
+			b.Logger.Error("updating status", "error", err)
+			err = nil
+		}
+	})
 }
 
 func (b *Bot) AddHandler(handler any) {
