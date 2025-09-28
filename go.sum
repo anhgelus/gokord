@@ -41,6 +41,8 @@ github.com/nyttikord/gokord v0.31.1-0.20250926154959-93603cbc1df5 h1:cXvcOHc7C57
 github.com/nyttikord/gokord v0.31.1-0.20250926154959-93603cbc1df5/go.mod h1:Oi0y5sfiYa+hVuV5ZSJ9UMWAGkcaLOhM7xB1TiCdX3U=
 github.com/nyttikord/gokord v0.31.1-0.20250927153129-9bed7a4b26bf h1:d7saDF/eDtu95IgE4sfVoHdBQmqdvyJrc73mG4HoTJU=
 github.com/nyttikord/gokord v0.31.1-0.20250927153129-9bed7a4b26bf/go.mod h1:Oi0y5sfiYa+hVuV5ZSJ9UMWAGkcaLOhM7xB1TiCdX3U=
+github.com/nyttikord/gokord v0.32.0 h1:NuDKCm2nJ+UhW4tYsZyVUbBPHx4Qafdqdw68IgiqJoE=
+github.com/nyttikord/gokord v0.32.0/go.mod h1:Oi0y5sfiYa+hVuV5ZSJ9UMWAGkcaLOhM7xB1TiCdX3U=
 github.com/pelletier/go-toml/v2 v2.2.4 h1:mye9XuhQ6gvn5h28+VilKrrPoQVanw5PMw/TB0t5Ec4=
 github.com/pelletier/go-toml/v2 v2.2.4/go.mod h1:2gIqNv+qfxSVS7cM2xJQKtLSTLUE9V8t9Stt+h56mCY=
 github.com/redis/go-redis/v9 v9.8.0 h1:q3nRvjrlge/6UD7eTu/DSg2uYiU2mCL0G/uzBWqhicI=
