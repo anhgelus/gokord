@@ -1,6 +1,7 @@
 package gokord
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"log/slog"
@@ -51,7 +52,7 @@ type Bot struct {
 	Innovations []*Innovation
 	Name        string
 	Intents     discord.Intent
-	timerCancel chan<- interface{}
+	timerCancel chan<- any
 }
 
 // Status contains all required information for updating the status
@@ -113,11 +114,25 @@ func (b *Bot) Start() {
 		b.timerCancel <- struct{}{}
 	}
 
-	err = dg.Close() // Bot Shutdown
-	if err != nil {
-		b.Logger.Error("closing bot", "error", err)
-		b.Logger.Warn("force closing")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	closed := make(chan struct{}, 1)
+	go func() {
+		if err = dg.Close(); err != nil {
+			dg.Logger().Error("closing bot", "error", err)
+			dg.Logger().Warn("force closing")
+			dg.ForceClose()
+		}
+		closed <- struct{}{}
+	}()
+
+	select {
+	case <-ctx.Done():
+		dg.Logger().Error("closing bot", "error", ctx.Err())
 		dg.ForceClose()
+	case <-closed:
+		// do nothing
 	}
 
 	b.Logger.Info("bot shut down")
@@ -125,7 +140,7 @@ func (b *Bot) Start() {
 
 func (b *Bot) onReady(s bot.Session, _ *event.Ready) {
 	b.Logger.Info("bot started", "as", s.SessionState().User().Username)
-	b.timerCancel = NewTimer(30*time.Second, func(stop chan<- interface{}) {
+	b.timerCancel = NewTimer(30*time.Second, func(stop chan<- any) {
 		if b.Status == nil {
 			stop <- struct{}{}
 			return
