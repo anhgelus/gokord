@@ -53,6 +53,7 @@ type Bot struct {
 	Name        string
 	Intents     discord.Intent
 	timerCancel chan<- any
+	Verbose     bool
 }
 
 // Status contains all required information for updating the status
@@ -65,7 +66,7 @@ type Status struct {
 // Start the Bot (blocking instruction)
 func (b *Bot) Start() {
 	level := slog.LevelInfo
-	if Debug {
+	if Debug || b.Verbose {
 		level = slog.LevelDebug
 	}
 	dg := discordgo.NewWithLogLevel("Bot "+b.Token, level) // New connection to the discord API with bot token
