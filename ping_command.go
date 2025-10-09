@@ -2,7 +2,6 @@ package gokord
 
 import (
 	"fmt"
-	"time"
 
 	cmd2 "github.com/anhgelus/gokord/cmd"
 	"github.com/nyttikord/gokord"
@@ -28,7 +27,6 @@ func pingCommand(s bot.Session, i *event.InteractionCreate, _ cmd2.OptionMap, re
 		s.Logger().Error("connect timestamp from ID", "error", err)
 		msg = ":ping_pong: Pong !"
 	} else {
-		s.Logger().Debug(timestamp.Format(time.UnixDate))
 		msg = fmt.Sprintf(
 			":ping_pong: Pong !\nLatence du bot : `%d ms`\nLatence de l'API discord : `%d ms`",
 			response.Timestamp.Sub(timestamp).Milliseconds(),
