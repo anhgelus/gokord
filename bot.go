@@ -64,7 +64,7 @@ type Status struct {
 }
 
 // Start the Bot (blocking instruction)
-func (b *Bot) Start() {
+func (b *Bot) Start(ctx context.Context) {
 	level := slog.LevelInfo
 	if Debug || b.Verbose {
 		level = slog.LevelDebug
@@ -80,7 +80,7 @@ func (b *Bot) Start() {
 		dg.EventManager().AddHandler(handler)
 	}
 
-	err := dg.Open() // Starts the bot
+	err := dg.Open(ctx) // Starts the bot
 	if err != nil {
 		b.Logger.Error("starting bot", "error", err)
 		return
@@ -95,7 +95,7 @@ func (b *Bot) Start() {
 	b.setupCommandsHandlers(dg)
 
 	if Debug {
-		dg.EventManager().AddHandler(func(s bot.Session, i *event.InteractionCreate) {
+		dg.EventManager().AddHandler(func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
 			b.Logger.Debug("interaction received")
 			data, _ := json.Marshal(i)
 			b.Logger.Debug(string(data))
@@ -120,7 +120,7 @@ func (b *Bot) Start() {
 
 	closed := make(chan struct{}, 1)
 	go func() {
-		if err = dg.Close(); err != nil {
+		if err = dg.Close(ctx); err != nil {
 			dg.Logger().Error("closing bot", "error", err)
 			dg.Logger().Warn("force closing")
 			dg.ForceClose()
@@ -139,7 +139,7 @@ func (b *Bot) Start() {
 	b.Logger.Info("bot shut down")
 }
 
-func (b *Bot) onReady(s bot.Session, _ *event.Ready) {
+func (b *Bot) onReady(ctx context.Context, s bot.Session, _ *event.Ready) {
 	b.Logger.Info("bot started", "as", s.SessionState().User().Username)
 	b.timerCancel = NewTimer(30*time.Second, func(stop chan<- any) {
 		if b.Status == nil {
@@ -151,17 +151,17 @@ func (b *Bot) onReady(s bot.Session, _ *event.Ready) {
 		status := b.Status[rnd]
 		var err error
 		if status.Type == GameStatus {
-			err = s.BotAPI().UpdateGameStatus(0, status.Content)
+			err = s.BotAPI().UpdateGameStatus(ctx, 0, status.Content)
 		} else if status.Type == WatchStatus {
-			err = s.BotAPI().UpdateWatchStatus(0, status.Content)
+			err = s.BotAPI().UpdateWatchStatus(ctx, 0, status.Content)
 		} else if status.Type == StreamingStatus {
 			if status.Url == "" {
 				err = ErrStatusUrlNotFound
 			} else {
-				err = s.BotAPI().UpdateStreamingStatus(0, status.Content, status.Url)
+				err = s.BotAPI().UpdateStreamingStatus(ctx, 0, status.Content, status.Url)
 			}
 		} else if status.Type == ListeningStatus {
-			err = s.BotAPI().UpdateListeningStatus(status.Content)
+			err = s.BotAPI().UpdateListeningStatus(ctx, status.Content)
 		} else {
 			err = ErrBadStatusType
 		}
@@ -178,7 +178,7 @@ func (b *Bot) AddHandler(handler any) {
 
 func (b *Bot) HandleModal(handler func(bot.Session, *event.InteractionCreate, *interaction.ModalSubmitData, *cmd.ResponseBuilder),
 	id string) {
-	b.AddHandler(func(s bot.Session, i *event.InteractionCreate) {
+	b.AddHandler(func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
 		if i.Type != types.InteractionModalSubmit {
 			return
 		}
@@ -193,7 +193,7 @@ func (b *Bot) HandleModal(handler func(bot.Session, *event.InteractionCreate, *i
 
 func (b *Bot) HandleMessageComponent(handler func(bot.Session, *event.InteractionCreate, *interaction.MessageComponentData, *cmd.ResponseBuilder),
 	id string) {
-	b.AddHandler(func(s bot.Session, i *event.InteractionCreate) {
+	b.AddHandler(func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
 		if i.Type != types.InteractionMessageComponent {
 			return
 		}

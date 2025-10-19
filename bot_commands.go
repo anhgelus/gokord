@@ -163,7 +163,7 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 
 // setupCommandsHandlers of the Bot
 func (b *Bot) setupCommandsHandlers(s *discordgo.Session) {
-	if cmdMap == nil || len(cmdMap) == 0 {
+	if len(cmdMap) == 0 {
 		cmdMap = make(map[string]cmd.CommandHandler, len(b.Commands))
 		for _, c := range b.Commands {
 			b.Logger.Debug("setup handler", "command", c.GetName())
@@ -176,7 +176,7 @@ func (b *Bot) setupCommandsHandlers(s *discordgo.Session) {
 		}
 		cmdMap["ping"] = pingCommand
 	}
-	s.EventManager().AddHandler(func(s bot.Session, i *event.InteractionCreate) {
+	s.EventManager().AddHandler(func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
 		if i.Type != types.InteractionApplicationCommand {
 			return
 		}
