@@ -60,8 +60,11 @@ func (b *Bot) updateCommands(s *discordgo.Session) {
 	if update.Changelog == "" {
 		return
 	}
-	for g := range s.GuildAPI().State.Guilds() {
-		if g.PublicUpdatesChannelID != "" {
+	for _, gID := range s.GuildAPI().State.Guilds() {
+		g, err := s.GuildAPI().State.Guild(gID)
+		if err != nil {
+			b.Logger.Error("getting guild", "error", err, "guild", gID)
+		} else if g.PublicUpdatesChannelID != "" {
 			changelog := fmt.Sprintf("## Nouveauté de la %s\n%s", update.Version, update.Changelog)
 			_, err := s.ChannelAPI().MessageSend(g.PublicUpdatesChannelID, changelog)
 			if err != nil {
@@ -103,15 +106,11 @@ func (b *Bot) registerCommands(s *discordgo.Session, update *InnovationCommands)
 	// set toUpdate and guildID
 	if Debug {
 		gs := s.GuildAPI().State.Guilds()
-		// This is ugly, but I can't do something else because Guilds returns an iter
-		for g := range gs {
-			guildID = g.ID
-			break
-		}
-		if guildID == "" {
+		if len(gs) == 0 {
 			b.Logger.Error("fetching guilds for debug", "error", fmt.Errorf("no cached guilds"))
 			return
 		}
+		guildID = gs[0]
 		// all commands (because it is in Debug)
 		toUpdate = b.Commands
 	} else {

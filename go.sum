@@ -12,8 +12,8 @@ github.com/jinzhu/inflection v1.0.0 h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD
 github.com/jinzhu/inflection v1.0.0/go.mod h1:h+uFLlag+Qp1Va5pdKtLDYj+kHp5pxUVkryuEj+Srlc=
 github.com/jinzhu/now v1.1.5 h1:/o9tlHleP7gOFmsnYNz3RGnqzefHA47wQpKrrdTIwXQ=
 github.com/jinzhu/now v1.1.5/go.mod h1:d3SSVoowX0Lcu0IBviAWJpolVfI5UJVZZ7cO71lE/z8=
-github.com/nyttikord/gokord v0.32.2-0.20251019204412-f26128ebfeda h1:vZiIk4D7e+yOCex0prstHHZRuMlH4oVl4YCXXk21isE=
-github.com/nyttikord/gokord v0.32.2-0.20251019204412-f26128ebfeda/go.mod h1:0DlJSojwCHLKvLcpCZLEfAaWaJniMNJsfwESo/+aI08=
+github.com/nyttikord/gokord v0.32.2-0.20251025205355-aa6d1b6f6cf8 h1:rR8eUz1X+1BRN95xGFgcLbFztoDwvbv+Qb9mkb9sTtA=
+github.com/nyttikord/gokord v0.32.2-0.20251025205355-aa6d1b6f6cf8/go.mod h1:0DlJSojwCHLKvLcpCZLEfAaWaJniMNJsfwESo/+aI08=
 github.com/pelletier/go-toml/v2 v2.2.4 h1:mye9XuhQ6gvn5h28+VilKrrPoQVanw5PMw/TB0t5Ec4=
 github.com/pelletier/go-toml/v2 v2.2.4/go.mod h1:2gIqNv+qfxSVS7cM2xJQKtLSTLUE9V8t9Stt+h56mCY=
 github.com/redis/go-redis/v9 v9.14.0 h1:u4tNCjXOyzfgeLN+vAZaW1xUooqWDqVEsZN0U01jfAE=
